@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S3` |
-| Status | Stub — no runtime artifacts adopted yet |
+| Status | S3-B in progress — public contracts/mapper/tests adopted; UI and Supabase not started |
 | S2 / S3 start baseline | `jackpot-site main@7abb209f7bafd0da53d08027e5773eff272fa39a` |
 | Current `main` descendant at S3-A | `eb154a74652c537f2bc6a428e0c290bd11fe0e28` (S3 plan merge; contains `7abb209`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -29,7 +29,15 @@ Do not pre-claim migration. Add a row when an artifact is actually copied, harde
 
 | Source path | Source SHA | JSE-003 disposition | Target path | Copy vs harden vs reimplement | Hardening changes | Tests/fixtures | Deferred/excluded deps |
 |---|---|---|---|---|---|---|---|
-| — | — | — | — | pending S3-B+ | — | — | — |
+| `src/types/curatedPromos.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/types/curatedPromos.ts` | COPY + path cleanup | Replaced `CuratedOfferEventOverlap` import with optional `eventOverlaps?: unknown[]` (D-S3-02) | — | Did not copy `curatedOfferEventOverlap.ts` |
+| `src/lib/mappers/curatedPromoDiscoveryMapper.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/mappers/curatedPromoDiscoveryMapper.ts` | COPY | None. Does not emit lineage/debug or `eventOverlaps` | mapper tests | no overlap attach |
+| `src/lib/__fixtures__/curatedPromoDiscoveryRow.fixtures.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/__fixtures__/curatedPromoDiscoveryRow.fixtures.ts` | COPY | None | used by mapper tests | no overlap fixtures |
+| `src/lib/__tests__/curatedPromoDiscoveryMapper.test.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/__tests__/curatedPromoDiscoveryMapper.test.ts` | COPY | Assert mapper omits `eventOverlaps` / `lineage` | self | — |
+| `src/lib/curated-promo-display.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/curated-promo-display.ts` | COPY | None | display tests | — |
+| `src/lib/__tests__/curated-promo-display.test.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/__tests__/curated-promo-display.test.ts` | COPY | None | self | — |
+| `src/lib/curated-promo-card-display.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/curated-promo-card-display.ts` | COPY | None | no dedicated source test | — |
+| `src/lib/constants/curatedPromoSignalCategory.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/constants/curatedPromoSignalCategory.ts` | COPY | Title/slug hint args accept null so target `strict` typecheck matches DTO nulls | category tests | — |
+| `src/lib/__tests__/curatedPromoSignalCategory.test.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/__tests__/curatedPromoSignalCategory.test.ts` | COPY | None | self | — |
 
 ## Deferred for initial S3 (do not adopt)
 
