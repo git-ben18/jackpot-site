@@ -22,7 +22,7 @@ npm run build
 
 A successful local build is not production acceptance.
 
-Target-side `JSE-001` adoption: `docs/architecture/JACKPOT_SITE_EXTRACTION_PLAN.md`. Treat `JSE-S2` as complete only after that scaffold and document merge to `main`.
+Target-side `JSE-001` adoption: `docs/architecture/JACKPOT_SITE_EXTRACTION_PLAN.md`. JSE-S2 is merged/complete at `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. Curated discovery is `JSE-S3` (`docs/JSE-S3-CURATED-DISCOVERY-PLAN.md`, task packets under `docs/tasks/jse-s3/`).
 
 ## Current lifecycle
 

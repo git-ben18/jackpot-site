@@ -86,7 +86,7 @@ JSE-003 identifies the source families expected to seed curated-discovery work, 
 - curated promo carousel/filter/evidence/signal/empty-state presentation;
 - card/detail/discovery components with required hardening.
 
-The exact implementation ledger should be added when those artifacts are actually copied/adapted.
+The exact implementation ledger is `docs/provenance/jse-s3-ledger.md`. Rows stay pending until S3-B+ actually adopts files. Do not treat the stub as evidence of copy.
 
 ## Explicit non-provenance
 

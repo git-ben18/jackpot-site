@@ -596,6 +596,24 @@ S3-H  Evidence + S3 closeout
 
 Do not collapse S3-E/F into UI extraction merely for speed. The separation exists so source artifact correctness and public-data privilege correctness can be reviewed independently.
 
+### Agent task packets
+
+Sequential, single-packet agent briefs live under:
+
+```text
+docs/tasks/jse-s3/00-README.md
+docs/tasks/jse-s3/S3-A-baseline-decisions.md
+docs/tasks/jse-s3/S3-B-contracts-mapper-tests.md
+docs/tasks/jse-s3/S3-C-pure-presentation.md
+docs/tasks/jse-s3/S3-D-harden-widget-card-sheet.md
+docs/tasks/jse-s3/S3-E-curated-repository.md
+docs/tasks/jse-s3/S3-F-db-privilege-acceptance.md
+docs/tasks/jse-s3/S3-G-live-homepage-integration.md
+docs/tasks/jse-s3/S3-H-evidence-closeout.md
+```
+
+Hand agents **one packet at a time** in that order. The packets do not replace this planning document; they operationalize S3-A..H.
+
 ---
 
 ## 8. Recommended PR boundaries
@@ -668,7 +686,8 @@ This planning document is ready to hand to implementation agents when:
 - [x] S3 dependency-addition rules are defined;
 - [x] fixture-first implementation order is defined;
 - [x] S3-A through S3-H exits are defined;
-- [ ] implementation has started;
+- [x] sequential agent task packets exist under `docs/tasks/jse-s3/`;
+- [x] implementation has started (S3-A docs/metadata);
 - [ ] S3 acceptance evidence exists.
 
-The last two items intentionally remain unchecked in this planning document.
+S3 acceptance evidence remains unchecked until S3-H.

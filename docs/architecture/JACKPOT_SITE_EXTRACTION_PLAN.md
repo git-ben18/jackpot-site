@@ -4,12 +4,12 @@
 |---|---|
 | Contract ID | `JSE-001` (target-side adoption) |
 | Revision | `1.1` (invariants unchanged from source) |
-| Status | Target-side adoption of the accepted source `JSE-001` contract. This repository is **construction/staging only**. A local or unmerged scaffold does **not** complete `JSE-S2`; that slice is complete only after the scaffold and this file merge to `jackpot-site` `main`. |
+| Status | Target-side adoption of the accepted source `JSE-001` contract. This repository is **construction/staging only**. `JSE-S2` is merged/complete at `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. |
 | Source repository | `git-ben18/rewards-maxxing-frontend` |
 | Functional source baseline | `master@466bfb065a9c34010ee0f0de22b419299259fa46` |
 | Source authority baseline | `master@0f75f8b596e9e208b02d54cdf48e2011b5217ff3` |
 | Docs authority baseline | `master@1a369ef04273a528d053f6f51c07cc50d7601ae2` |
-| Target repository | `git-ben18/jackpot-site` — **exists**. Docs bootstrap: `main@95b8348e6d8e2c08a6c67957a5cdcc980105afb4`. |
+| Target repository | `git-ben18/jackpot-site` — **exists**. Docs bootstrap: `main@95b8348e6d8e2c08a6c67957a5cdcc980105afb4`. S2 runtime baseline: `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. |
 | Product / release authority | `git-ben18/jackpot-news` |
 | Cross-repo architecture summary | `git-ben18/jackpot-docs` — cross-repository summaries/navigation only; do not duplicate the JSE file-level extraction matrix there |
 | Canonical hosting / identity ADR | `jackpot-news/docs/decisions/ADR-0003-acquisition-runtime-hosting-and-workload-identity.md` |
@@ -560,7 +560,7 @@ Once `git-ben18/jackpot-site` exists:
 
 Exit: target builds without dashboard/legacy application dependencies.
 
-**Target progress (2026-09-03):** `jackpot-site` exists (`main@95b8348`). The allowlisted App Router scaffold, initial page/shell routes (`/`, `/privacy`, `/newsletter/confirm`), and this file are the S2 implementation. Treat `JSE-S2` as **complete only after that work merges to `main`**. Same-origin newsletter BFF handlers remain `JSE-S4`. Curated discovery remains `JSE-S3`. No dashboard, Hottest Offers, `LandingDashboardClient`, `/api/subscribe`, or service-role client is part of this scaffold.
+**Target progress (2026-09-03):** `JSE-S2` is **merged/complete** at `main@7abb209f7bafd0da53d08027e5773eff272fa39a` (allowlisted App Router scaffold, initial page/shell routes `/`, `/privacy`, `/newsletter/confirm`, and this file). Same-origin newsletter BFF handlers remain `JSE-S4`. Curated discovery is `JSE-S3`. No dashboard, Hottest Offers, `LandingDashboardClient`, `/api/subscribe`, or service-role client is part of the S2 scaffold.
 
 **S2 package/config allowlist (until a migrated module demands more):** `next`, `react`, `react-dom`, `typescript`, `@types/node`, `@types/react`, `@types/react-dom`. Reconstruct `package.json`, `tsconfig.json`, and `next.config.ts`. Do not copy source Tailwind/PostCSS/`@supabase/supabase-js` until S3/S5 need them.
 
@@ -572,6 +572,8 @@ Exit: target builds without dashboard/legacy application dependencies.
 - migrate only required tracking hooks.
 
 Exit: curated discovery renders from published/read-safe data and fails safely without high-privilege website credentials.
+
+**Target progress (2026-09-03):** S3 planning is accepted (`docs/JSE-S3-CURATED-DISCOVERY-PLAN.md`). S3-A frozen the S2 start SHA `7abb209`, verified source paths at `466bfb0`, and deferred overlaps + analytics for initial S3. Runtime extraction begins at S3-B. Agent packets: `docs/tasks/jse-s3/`.
 
 ### JSE-S4 — Migrate DOI UX and BFF
 
@@ -720,7 +722,7 @@ Rollback must not create two canonical subscriber systems.
 
 The extraction may proceed without reopening the accepted hosting architecture, but these items still need explicit resolution during implementation:
 
-1. final target-repo creation/baseline SHA — docs bootstrap recorded as `main@95b8348`; record the S2 scaffold SHA after it merges to `main`;
+1. final target-repo creation/baseline SHA — docs bootstrap `main@95b8348`; S2 runtime baseline `main@7abb209f7bafd0da53d08027e5773eff272fa39a`;
 2. exact target package dependency allowlist after import audit;
 3. whether `public.published_curated_offer_event_overlaps` remains in the first production dependency set;
 4. whether any session identifier is needed for first-release GTM analytics;
@@ -751,8 +753,8 @@ Source-side criteria remain satisfied. Target-side criteria:
 - [x] production route/environment/secret allowlist principles are explicit;
 - [x] proposed migration slices are defined;
 - [x] `git-ben18/jackpot-site` exists (`main@95b8348`);
-- [ ] this target-side copy of `JSE-001` and the S2 scaffold have merged to `jackpot-site` `main`;
-- [ ] S2 scaffold SHA recorded as the runtime bootstrap baseline after that merge;
+- [x] this target-side copy of `JSE-001` and the S2 scaffold have merged to `jackpot-site` `main`;
+- [x] S2 scaffold SHA recorded as the runtime bootstrap baseline (`main@7abb209f7bafd0da53d08027e5773eff272fa39a`);
 - [ ] later slices (`JSE-S3`–`JSE-S6`) implemented from this contract.
 
 ---
