@@ -2,7 +2,7 @@
 
 ## Status
 
-Active target bootstrap boundary.
+Active target implementation boundary. Docs bootstrap is `main@95b8348`. The JSE-S2 Next.js scaffold and target-side `JSE-001` adoption live in this repository and are complete only after they merge to `main`.
 
 ## Purpose
 

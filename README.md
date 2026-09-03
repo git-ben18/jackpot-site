@@ -2,6 +2,28 @@
 
 `git-ben18/jackpot-site` is the dedicated target repository for the public Jackpot Homie website.
 
+## JSE-S2 scaffold
+
+This repository now contains a **minimal Next.js App Router scaffold** for the approved initial public pages:
+
+- `/`
+- `/privacy`
+- `/newsletter/confirm`
+
+Root layout is a reimplemented allowlisted shell (home + privacy links only). Same-origin newsletter BFF routes, curated discovery, and production privacy/analytics are later slices (`JSE-S4`, `JSE-S3`, `JSE-S5`).
+
+Package allowlist until a migrated module demands more: `next`, `react`, `react-dom`, `typescript`, and the listed `@types/*` packages.
+
+```text
+npm install
+npm run typecheck
+npm run build
+```
+
+A successful local build is not production acceptance.
+
+Target-side `JSE-001` adoption: `docs/architecture/JACKPOT_SITE_EXTRACTION_PLAN.md`. Treat `JSE-S2` as complete only after that scaffold and document merge to `main`.
+
 ## Current lifecycle
 
 This repository begins as a **construction/staging target**. Repository creation, local builds, preview deployments, or staging deployments do **not** by themselves transfer production public-site or newsletter-BFF authority.
