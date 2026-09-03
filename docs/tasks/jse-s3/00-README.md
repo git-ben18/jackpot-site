@@ -51,8 +51,8 @@ Agents may still implement S3-C and S3-D as separate commits/PRs if that keeps r
 |---|---|---|---|---|
 | S3-A | [S3-A-baseline-decisions.md](./S3-A-baseline-decisions.md) | Baseline + decisions | — | Docs / metadata |
 | S3-B | [S3-B-contracts-mapper-tests.md](./S3-B-contracts-mapper-tests.md) | Public contracts | S3-A | Code + tests |
-| S3-C | [S3-C-pure-presentation.md](./S3-C-pure-presentation.md) | Pure presentation | S3-B | Code |
-| S3-D | [S3-D-harden-widget-card-sheet.md](./S3-D-harden-widget-card-sheet.md) | Harden couplings | S3-C | Code |
+| S3-C | [S3-C-leaf-presentation.md](./S3-C-leaf-presentation.md) | Leaf presentation | S3-B | Code |
+| S3-D | [S3-D-composed-hardened-presentation.md](./S3-D-composed-hardened-presentation.md) | Composed / hardened presentation | S3-C | Code |
 | S3-E | [S3-E-curated-repository.md](./S3-E-curated-repository.md) | Low-privilege repo | S3-D | Code + tests |
 | S3-F | [S3-F-db-privilege-acceptance.md](./S3-F-db-privilege-acceptance.md) | DB privilege evidence | S3-E | Evidence / spike |
 | S3-G | [S3-G-live-homepage-integration.md](./S3-G-live-homepage-integration.md) | Live homepage | S3-F | Code |
@@ -70,3 +70,4 @@ Agents may still implement S3-C and S3-D as separate commits/PRs if that keeps r
 8. Record provenance at adoption time (`docs/provenance/rewards-maxxing-frontend.md` and/or an S3 ledger created in S3-A).
 9. Distinguish **copied**, **adapted/hardened**, **implemented**, **configured**, **deployed**, and **operationally accepted**.
 10. Stop on any condition in plan §9 and resolve the boundary before continuing.
+11. `jackpot-site` does not own Supabase schema/grant/RLS/`security_invoker` migrations. If S3-F (or later) discovers those must change, stop and route through the current Supabase migration authority — never apply ad-hoc production DDL from this repository.

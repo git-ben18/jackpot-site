@@ -442,36 +442,36 @@ Exit:
 - no Supabase client is required to run the tests;
 - no excluded source dependency enters the target graph.
 
-### S3-C — Pure curated presentation
+### S3-C — Leaf presentation
 
-**Goal:** render curated discovery using deterministic fixtures before any live database integration.
+**Goal:** adopt only leaf curated UI that does not compose filters/carousel/card/widget, and exercise it from fixtures before composed hardening.
 
 Tasks:
 
-- adopt Carousel, EmptyState, EvidenceBlock, FilterChips, SignalList;
-- adopt required curated styling only;
-- mount or exercise the presentation graph against fixture DTOs;
-- preserve filtering, card presentation, detail presentation, evidence, badges/signals, and safe source links;
-- add only dependencies demonstrably required by these components.
+- adopt EmptyState, EvidenceBlock, SignalList;
+- adopt required curated styling for those leaves only;
+- mount or exercise the leaves against fixture DTOs;
+- do **not** adopt Carousel, FilterChips, Card, DetailSheet, Widget, nicheMap, or LandingSection yet.
 
 Exit:
 
-- public curated presentation renders from fixture DTOs;
+- leaf presentation renders from fixture DTOs;
 - UI behavior can be tested without Supabase or analytics;
 - dashboard/event/newsletter dependencies are absent.
 
-### S3-D — Harden Widget / Card / DetailSheet
+### S3-D — Composed / hardened presentation
 
-**Goal:** sever hidden legacy couplings before the public UI is treated as target-safe.
+**Goal:** compose FilterChips / Carousel with hardened Card / DetailSheet / Widget / nicheMap, severing tracker and event-overlap couplings before the tree is treated as target-safe.
 
 Tasks:
 
-- adopt `CuratedPromoDiscoveryWidget` as COPY + HARDEN;
+- adopt FilterChips and Carousel (COPY);
+- adopt nicheMap, Card, DetailSheet, and DiscoveryWidget as COPY + HARDEN;
 - remove `useTracker` network behavior;
-- adopt Card and DetailSheet as COPY + HARDEN;
 - remove event-overlap display imports and any transitively excluded event modules;
 - preserve outbound source CTA semantics without `/api/log-click` dependency;
-- ensure empty/error states remain usable.
+- ensure empty/error states remain usable;
+- wire the composed tree to S3-C leaves and S3-B fixtures.
 
 Exit:
 
@@ -514,13 +514,15 @@ Tasks:
 - verify INSERT / UPDATE / DELETE are denied;
 - verify unrelated internal reads are denied;
 - verify underlying raw/canonical tables were not broadly exposed for the site;
-- record non-secret evidence of these tests.
+- record non-secret evidence of these tests;
+- if view/grants/`security_invoker`/RLS must change, **stop** and route the change through the current Supabase migration authority — do not apply ad-hoc production DDL from `jackpot-site`.
 
 Exit:
 
 - actual privilege behavior matches D-S3-06;
 - no service-role/secret key is needed for ordinary curated rendering;
-- unresolved view-privilege behavior blocks progression to S3-G.
+- unresolved view-privilege behavior blocks progression to S3-G;
+- required database DDL/grant changes are not applied from this repository.
 
 ### S3-G — Live homepage integration
 
@@ -581,9 +583,9 @@ S3-A  Baseline + decisions
   ↓
 S3-B  Public contracts / mapper / tests
   ↓
-S3-C  Pure curated presentation
+S3-C  Leaf presentation
   ↓
-S3-D  Harden Widget / Card / DetailSheet
+S3-D  Composed / hardened presentation
   ↓
 S3-E  Low-privilege curated repository
   ↓
@@ -604,8 +606,8 @@ Sequential, single-packet agent briefs live under:
 docs/tasks/jse-s3/00-README.md
 docs/tasks/jse-s3/S3-A-baseline-decisions.md
 docs/tasks/jse-s3/S3-B-contracts-mapper-tests.md
-docs/tasks/jse-s3/S3-C-pure-presentation.md
-docs/tasks/jse-s3/S3-D-harden-widget-card-sheet.md
+docs/tasks/jse-s3/S3-C-leaf-presentation.md
+docs/tasks/jse-s3/S3-D-composed-hardened-presentation.md
 docs/tasks/jse-s3/S3-E-curated-repository.md
 docs/tasks/jse-s3/S3-F-db-privilege-acceptance.md
 docs/tasks/jse-s3/S3-G-live-homepage-integration.md
@@ -625,7 +627,7 @@ A reasonable delivery pattern is:
 ```text
 PR 1 — S3-A planning/baseline
 PR 2 — S3-B contracts/tests
-PR 3 — S3-C + S3-D presentation/hardening
+PR 3 — S3-C + S3-D leaf then composed/hardened presentation
 PR 4 — S3-E repository implementation
 PR 5 — S3-F privilege evidence + S3-G live integration
 PR 6 — S3-H closeout evidence
@@ -647,7 +649,8 @@ Stop implementation and resolve the boundary before continuing if any of the fol
 - event-discovery code is required after overlaps were deferred;
 - analytics becomes required for basic discovery UX;
 - production data failure can only be hidden by silently serving mock data;
-- a new package is proposed only because it existed in the source repository.
+- a new package is proposed only because it existed in the source repository;
+- `jackpot-site` is asked to apply ad-hoc Supabase schema/grant/RLS/`security_invoker` DDL instead of routing through the migration authority.
 
 Resolve or amend the relevant architecture decision rather than broadening S3 implicitly.
 

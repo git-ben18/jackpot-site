@@ -19,6 +19,20 @@ Prove the public-read boundary is secure at the **database** layer for the low-p
 - View ownership / `security_invoker` behavior must be understood and documented
 - Unresolved privilege questions **block** S3-G
 
+## Migration authority (hard rule)
+
+`jackpot-site` does **not** own Supabase schema, grant, RLS, or `security_invoker` migrations.
+
+If S3-F discovers that the view definition, grants, `security_invoker`, RLS, or related producer-table privileges must change:
+
+1. **stop**;
+2. record the required change and evidence that motivated it;
+3. route the database change through the **current Supabase migration authority** (the repo/process that already owns published-view DDL for this project);
+4. do **not** apply ad-hoc production DDL from `jackpot-site`;
+5. do **not** invent service-role usage in this repository as a workaround.
+
+Re-run the acceptance matrix after the authorized migration lands. Only then may S3-F conclude `accepted`.
+
 ## Implementation requirements
 
 1. Use only authoritative connection details supplied via repo env docs, `.env.example` purpose names, or ops-provided non-secret instructions. Do not invent database hosts.
@@ -50,7 +64,7 @@ raw / canonical producer tables
    - commands or query descriptions used
    - results (success/denied)
    - conclusion: `accepted` | `blocked`
-6. If blocked, list the exact follow-up required (grant change, `security_invoker`, RLS policy, etc.). Do **not** proceed to invent service-role usage as a workaround.
+6. If blocked by missing/incorrect view, grants, `security_invoker`, or RLS: follow the **Migration authority** rule above. List the exact follow-up for the migration owner. Do **not** proceed to invent service-role usage as a workaround.
 7. No production cutover. No homepage wiring in this task unless already present and unchanged.
 
 ## Suggested deliverables
@@ -58,11 +72,13 @@ raw / canonical producer tables
 - `docs/evidence/jse-s3-db-privilege.md` with the acceptance matrix filled
 - Optional SQL snippets used for verification (no credentials)
 - Status note `accepted` or `blocked` with owners/next steps
+- If blocked for DDL/grants: handoff note naming the Supabase migration authority and required change
 
 ## Out of scope
 
+- Applying schema/grant/RLS/`security_invoker` DDL from this repository
 - Changing production DNS / cutover
-- Broadening grants “to make the site work” without documenting risk
+- Broadening grants “to make the site work” without documenting risk and routing through migration authority
 - Implementing service-role fallback
 - S3-G homepage integration (unless this task only documents prerequisites)
 
@@ -75,6 +91,7 @@ raw / canonical producer tables
 - [ ] Producer-table exposure reviewed
 - [ ] View owner / security_invoker determination recorded
 - [ ] Explicit `accepted` or `blocked` conclusion
+- [ ] If DDL/grants must change: blocked with migration-authority handoff (no ad-hoc DDL from jackpot-site)
 - [ ] No service-role workaround introduced
 - [ ] S3-G unblocked only if conclusion is `accepted`
 
@@ -83,6 +100,7 @@ raw / canonical producer tables
 ```text
 Implement only S3-F from docs/tasks/jse-s3/S3-F-db-privilege-acceptance.md
 Prove D-S3-06 against the low-privilege identity. Document
-security_invoker/owner/grants. If blocked, stop — do not use service-role.
-No homepage live integration in this task.
+security_invoker/owner/grants. If view/grants/RLS must change, stop and
+route through the Supabase migration authority — do not apply DDL from
+jackpot-site and do not use service-role. No homepage live integration.
 ```
