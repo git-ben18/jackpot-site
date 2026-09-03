@@ -86,7 +86,7 @@ JSE-003 identifies the source families expected to seed curated-discovery work, 
 - curated promo carousel/filter/evidence/signal/empty-state presentation;
 - card/detail/discovery components with required hardening.
 
-The exact implementation ledger is `docs/provenance/jse-s3-ledger.md`. S3-B has adopted public DTO / mapper / helpers / fixtures / tests at source `466bfb0`. UI and live data access remain pending.
+The exact implementation ledger is `docs/provenance/jse-s3-ledger.md`. S3-B adopted public DTO / mapper / helpers / fixtures / tests at source `466bfb0`. S3-C adopted leaf presentation (EmptyState, EvidenceBlock, SignalList) plus minimal Tailwind tooling. Composed UI and live data access remain pending.
 
 ## Explicit non-provenance
 

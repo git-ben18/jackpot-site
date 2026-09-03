@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S3` |
-| Status | S3-B in progress — public contracts/mapper/tests adopted; UI and Supabase not started |
+| Status | S3-C complete — leaf presentation adopted; composed UI and Supabase not started |
 | S2 / S3 start baseline | `jackpot-site main@7abb209f7bafd0da53d08027e5773eff272fa39a` |
 | Current `main` descendant at S3-A | `eb154a74652c537f2bc6a428e0c290bd11fe0e28` (S3 plan merge; contains `7abb209`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -38,6 +38,10 @@ Do not pre-claim migration. Add a row when an artifact is actually copied, harde
 | `src/lib/curated-promo-card-display.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/curated-promo-card-display.ts` | COPY | None | no dedicated source test | — |
 | `src/lib/constants/curatedPromoSignalCategory.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/constants/curatedPromoSignalCategory.ts` | COPY | Title/slug hint args accept null so target `strict` typecheck matches DTO nulls | category tests | — |
 | `src/lib/__tests__/curatedPromoSignalCategory.test.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/lib/__tests__/curatedPromoSignalCategory.test.ts` | COPY | None | self | — |
+| `src/components/v2/curated-promos/CuratedPromoEmptyState.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/components/v2/curated-promos/CuratedPromoEmptyState.tsx` | COPY | Explicit `import React` for node:test/`tsx` fixture exercise | leaf presentation tests | — |
+| `src/components/v2/curated-promos/CuratedPromoEvidenceBlock.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/components/v2/curated-promos/CuratedPromoEvidenceBlock.tsx` | COPY | Explicit `import React` for node:test/`tsx` fixture exercise | leaf presentation tests | — |
+| `src/components/v2/curated-promos/CuratedPromoSignalList.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/components/v2/curated-promos/CuratedPromoSignalList.tsx` | COPY | Explicit `import React` for node:test/`tsx` fixture exercise | leaf presentation tests | — |
+| source `globals.css` Tailwind utilities subset | n/a (reconstruct) | reconstruct | `src/app/globals.css` + `tailwind.config.js` + `postcss.config.js` | REIMPLEMENT tooling | Minimal Tailwind v3 base/components/utilities only; no chip-strip/carousel utilities; no brand theme yet | — | chip-strip/carousel CSS deferred to S3-D |
 
 ## Deferred for initial S3 (do not adopt)
 
