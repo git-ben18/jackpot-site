@@ -59,6 +59,21 @@ For every source-derived runtime artifact adopted here, record at implementation
 
 Do not use this file to pre-claim migration of artifacts that have not actually been adopted.
 
+## JSE-S2 (scaffold) — no source runtime copy
+
+The initial App Router shell is **implemented** in this repository, not copied from source `layout.tsx` / `Navbar.tsx` / `Footer.tsx`.
+
+| Item | Record |
+|---|---|
+| Source path | none (reimplemented shell; source layout is `REIMPLEMENT` in JSE-003) |
+| Source commit/SHA | n/a for runtime files |
+| JSE-003 disposition | root layout `REIMPLEMENT`; Navbar not COPY |
+| Target path | `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/privacy/page.tsx`, `src/app/newsletter/confirm/page.tsx` |
+| Copy vs harden vs reimplement | implemented placeholders |
+| Deferred/excluded dependencies | no Supabase, Tailwind, dashboard, newsletter BFF, `artifact-queries`, `LandingDashboardClient` |
+
+Target-side `JSE-001` adoption (document, not runtime): `docs/architecture/JACKPOT_SITE_EXTRACTION_PLAN.md`, adopted from source `_docs/planning/JACKPOT_SITE_EXTRACTION_PLAN.md` at `rewards-maxxing-frontend` `95bb9bd` (PR #32 text; invariants from `master@0f75f8b`).
+
 ## Initial S3 source artifact families
 
 JSE-003 identifies the source families expected to seed curated-discovery work, including:
