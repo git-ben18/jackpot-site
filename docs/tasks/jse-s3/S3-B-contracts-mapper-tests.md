@@ -60,7 +60,7 @@ Target paths should mirror under `src/` unless a short documented rename improve
 
 ## Out of scope
 
-- Any curated React components (S3-C / S3-D)
+- Any curated React components (S3-C leaf / S3-D composed)
 - `@supabase/supabase-js`
 - Tailwind unless a non-UI helper somehow requires it (it should not)
 - Homepage wiring

@@ -32,4 +32,4 @@ Package added: `tsx` (devDependency) for node tests.
 
 ## Next
 
-S3-C — pure curated presentation. Do not add Widget/Card/DetailSheet or `@supabase/supabase-js` yet.
+S3-C — leaf presentation (EmptyState, EvidenceBlock, SignalList + required CSS only). Do not add Carousel/FilterChips/Card/DetailSheet/Widget or `@supabase/supabase-js` yet.

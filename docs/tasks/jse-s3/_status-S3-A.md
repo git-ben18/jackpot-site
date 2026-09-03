@@ -65,7 +65,7 @@ May add only when a later S3 packet proves need:
 | Package | Earliest packet |
 |---|---|
 | `tsx` | S3-B, if required to run source-style node tests |
-| Tailwind / PostCSS (minimal reconstruct) | S3-C, only if adopted components require it |
+| Tailwind / PostCSS (minimal reconstruct) | S3-C if leaf components require it; otherwise S3-D when FilterChips/Carousel/Card need utilities |
 | `@supabase/supabase-js` | S3-E |
 | `server-only` | S3-E, if the server module needs the Next convention |
 
