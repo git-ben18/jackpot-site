@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/lib/__tests__/curatedPromoDiscoveryMapper.test.ts src/lib/__tests__/curated-promo-display.test.ts src/lib/__tests__/curatedPromoSignalCategory.test.ts src/lib/__tests__/curated-promo-leaf-presentation.test.ts"
+    "test": "tsx --test src/lib/__tests__/curatedPromoDiscoveryMapper.test.ts src/lib/__tests__/curated-promo-display.test.ts src/lib/__tests__/curatedPromoSignalCategory.test.ts src/lib/__tests__/curated-promo-leaf-presentation.test.ts src/lib/__tests__/curated-promo-composed-presentation.test.ts"
   },
   "dependencies": {
     "next": "^15.3.3",
