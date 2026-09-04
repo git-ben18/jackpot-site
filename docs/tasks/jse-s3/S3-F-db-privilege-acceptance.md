@@ -5,7 +5,8 @@
 | Track | S3-F |
 | Type | Evidence / spike (minimal code) |
 | Depends on | S3-E |
-| Blocks | S3-G |
+| Blocks | S3-G (only when conclusion is `accepted`) |
+| If blocked for RLS/grants | [S3-F-RLS](./S3-F-RLS-public-read-remediation.md) |
 | Estimate | M |
 | PR grouping | PR 5 (with S3-G) |
 
@@ -25,13 +26,14 @@ Prove the public-read boundary is secure at the **database** layer for the low-p
 
 If S3-F discovers that the view definition, grants, `security_invoker`, RLS, or related producer-table privileges must change:
 
-1. **stop**;
+1. **stop** with conclusion `blocked`;
 2. record the required change and evidence that motivated it;
-3. route the database change through the **current Supabase migration authority** (the repo/process that already owns published-view DDL for this project);
-4. do **not** apply ad-hoc production DDL from `jackpot-site`;
-5. do **not** invent service-role usage in this repository as a workaround.
+3. open **S3-F-RLS** ([S3-F-RLS-public-read-remediation.md](./S3-F-RLS-public-read-remediation.md)) — do not treat a footnote as the work;
+4. route the database change through the **current Supabase migration authority** (the repo/process that already owns published-view DDL for this project);
+5. do **not** apply ad-hoc production DDL from `jackpot-site`;
+6. do **not** invent service-role usage in this repository as a workaround.
 
-Re-run the acceptance matrix after the authorized migration lands. Only then may S3-F conclude `accepted`.
+Re-run this packet’s acceptance matrix after S3-F-RLS is `remediated`. Only then may S3-F conclude `accepted`. If the matrix already matches D-S3-06 with no RLS/grant gap, mark S3-F-RLS `N/A` and continue.
 
 ## Implementation requirements
 
@@ -64,7 +66,7 @@ raw / canonical producer tables
    - commands or query descriptions used
    - results (success/denied)
    - conclusion: `accepted` | `blocked`
-6. If blocked by missing/incorrect view, grants, `security_invoker`, or RLS: follow the **Migration authority** rule above. List the exact follow-up for the migration owner. Do **not** proceed to invent service-role usage as a workaround.
+6. If blocked by missing/incorrect view, grants, `security_invoker`, or RLS: follow the **Migration authority** rule above and implement **S3-F-RLS**. List the exact relations and gaps for the migration owner. Do **not** proceed to invent service-role usage as a workaround.
 7. No production cutover. No homepage wiring in this task unless already present and unchanged.
 
 ## Suggested deliverables
@@ -72,7 +74,7 @@ raw / canonical producer tables
 - `docs/evidence/jse-s3-db-privilege.md` with the acceptance matrix filled
 - Optional SQL snippets used for verification (no credentials)
 - Status note `accepted` or `blocked` with owners/next steps
-- If blocked for DDL/grants: handoff note naming the Supabase migration authority and required change
+- If blocked for DDL/grants: handoff into S3-F-RLS naming the Supabase migration authority and required change
 
 ## Out of scope
 
@@ -91,7 +93,7 @@ raw / canonical producer tables
 - [ ] Producer-table exposure reviewed
 - [ ] View owner / security_invoker determination recorded
 - [ ] Explicit `accepted` or `blocked` conclusion
-- [ ] If DDL/grants must change: blocked with migration-authority handoff (no ad-hoc DDL from jackpot-site)
+- [ ] If DDL/grants must change: `blocked` with S3-F-RLS opened (no ad-hoc DDL from jackpot-site)
 - [ ] No service-role workaround introduced
 - [ ] S3-G unblocked only if conclusion is `accepted`
 
@@ -100,7 +102,8 @@ raw / canonical producer tables
 ```text
 Implement only S3-F from docs/tasks/jse-s3/S3-F-db-privilege-acceptance.md
 Prove D-S3-06 against the low-privilege identity. Document
-security_invoker/owner/grants. If view/grants/RLS must change, stop and
-route through the Supabase migration authority — do not apply DDL from
-jackpot-site and do not use service-role. No homepage live integration.
+security_invoker/owner/grants. If view/grants/RLS must change, stop, conclude blocked, and
+continue with S3-F-RLS in the Supabase migration authority — do not
+apply DDL from jackpot-site and do not use service-role. No homepage
+live integration.
 ```

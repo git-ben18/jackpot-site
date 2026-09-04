@@ -27,10 +27,12 @@ Record provenance for every source-derived runtime file you adopt.
 ## Order
 
 ```text
-S3-A → S3-B → S3-C → S3-D → S3-E → S3-F → S3-G → S3-H
+S3-A → S3-B → S3-C → S3-D → S3-E → S3-F → S3-F-RLS? → S3-G → S3-H
 ```
 
-Do **not** start S3-E before S3-D exits. Do **not** start S3-G before S3-F exits. Fixture-first is mandatory (D-S3-08).
+Do **not** start S3-E before S3-D exits. Do **not** start S3-G before S3-F exits with conclusion `accepted`. Fixture-first is mandatory (D-S3-08).
+
+**S3-F-RLS** runs when S3-F (or an equivalent audit) finds missing/insufficient RLS, grants, or `security_invoker` on the public-read path. It is required before S3-F may conclude `accepted` unless S3-F already proved there is no gap (then mark S3-F-RLS `N/A`). DDL is applied only in the Supabase migration authority — never from this repository.
 
 Recommended PR grouping (from the plan):
 
@@ -39,7 +41,7 @@ PR 1 — S3-A
 PR 2 — S3-B
 PR 3 — S3-C + S3-D
 PR 4 — S3-E
-PR 5 — S3-F + S3-G
+PR 5 — S3-F privilege evidence; S3-F-RLS in the migration-authority repo if blocked; then S3-G
 PR 6 — S3-H
 ```
 
@@ -55,7 +57,8 @@ Agents may still implement S3-C and S3-D as separate commits/PRs if that keeps r
 | S3-D | [S3-D-composed-hardened-presentation.md](./S3-D-composed-hardened-presentation.md) | Composed / hardened presentation | S3-C | Code |
 | S3-E | [S3-E-curated-repository.md](./S3-E-curated-repository.md) | Low-privilege repo | S3-D | Code + tests |
 | S3-F | [S3-F-db-privilege-acceptance.md](./S3-F-db-privilege-acceptance.md) | DB privilege evidence | S3-E | Evidence / spike |
-| S3-G | [S3-G-live-homepage-integration.md](./S3-G-live-homepage-integration.md) | Live homepage | S3-F | Code |
+| S3-F-RLS | [S3-F-RLS-public-read-remediation.md](./S3-F-RLS-public-read-remediation.md) | Public-read RLS / grant remediation | S3-F `blocked` (or equivalent audit) | Evidence + authorized migration |
+| S3-G | [S3-G-live-homepage-integration.md](./S3-G-live-homepage-integration.md) | Live homepage | S3-F `accepted` | Code |
 | S3-H | [S3-H-evidence-closeout.md](./S3-H-evidence-closeout.md) | Closeout | S3-G | Docs / evidence |
 
 ## Global constraints (every task)
@@ -70,4 +73,4 @@ Agents may still implement S3-C and S3-D as separate commits/PRs if that keeps r
 8. Record provenance at adoption time (`docs/provenance/rewards-maxxing-frontend.md` and/or an S3 ledger created in S3-A).
 9. Distinguish **copied**, **adapted/hardened**, **implemented**, **configured**, **deployed**, and **operationally accepted**.
 10. Stop on any condition in plan §9 and resolve the boundary before continuing.
-11. `jackpot-site` does not own Supabase schema/grant/RLS/`security_invoker` migrations. If S3-F (or later) discovers those must change, stop and route through the current Supabase migration authority — never apply ad-hoc production DDL from this repository.
+11. `jackpot-site` does not own Supabase schema/grant/RLS/`security_invoker` migrations. If S3-F (or later) discovers those must change, stop and implement [S3-F-RLS](./S3-F-RLS-public-read-remediation.md) through the current Supabase migration authority — never apply ad-hoc production DDL from this repository.

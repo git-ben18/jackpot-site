@@ -11,7 +11,7 @@
 | Source architecture authority | `JSE-001` |
 | Source file-level disposition authority | `JSE-003` |
 | Higher product / release authority | `git-ben18/jackpot-news` |
-| Last updated | 2026-09-03 |
+| Last updated | 2026-09-04 |
 
 ---
 
@@ -515,7 +515,7 @@ Tasks:
 - verify unrelated internal reads are denied;
 - verify underlying raw/canonical tables were not broadly exposed for the site;
 - record non-secret evidence of these tests;
-- if view/grants/`security_invoker`/RLS must change, **stop** and route the change through the current Supabase migration authority — do not apply ad-hoc production DDL from `jackpot-site`.
+- if view/grants/`security_invoker`/RLS must change, **stop** with S3-F `blocked` and implement **S3-F-RLS** through the current Supabase migration authority — do not apply ad-hoc production DDL from `jackpot-site`.
 
 Exit:
 
@@ -523,6 +523,28 @@ Exit:
 - no service-role/secret key is needed for ordinary curated rendering;
 - unresolved view-privilege behavior blocks progression to S3-G;
 - required database DDL/grant changes are not applied from this repository.
+
+### S3-F-RLS — Public-read RLS / grant remediation
+
+**Goal:** close missing or insufficient RLS, policies, grants, or `security_invoker` on the S3 public-read path in the **migration-authority** repo.
+
+Tasks:
+
+- name the current published-view DDL owner before writing SQL;
+- enumerate `public.v_curated_promo_discovery`, its producer relations, and any other object the S3-E low-privilege role can reach;
+- enable RLS and add explicit policies (or record why RLS is not the control) on reachable base tables that lack them;
+- revoke stray GRANTs; do not grant producer-table SELECT for convenience;
+- set/document `security_invoker` when the view-owner audit requires it;
+- re-run the D-S3-06 matrix;
+- record non-secret evidence; then let S3-F conclude `accepted`.
+
+Exit:
+
+- S3-F-RLS is `remediated`, or `N/A` because S3-F already proved no gap;
+- DDL landed only in the named migration authority;
+- S3-G remains blocked until S3-F is `accepted`.
+
+A whole-database RLS sweep of tables the site role cannot reach is a migration-repo follow-up, not an S3-G blocker.
 
 ### S3-G — Live homepage integration
 
@@ -591,6 +613,8 @@ S3-E  Low-privilege curated repository
   ↓
 S3-F  Database privilege / view acceptance
   ↓
+S3-F-RLS  Public-read RLS / grant remediation (if S3-F is blocked)
+  ↓
 S3-G  Live homepage integration
   ↓
 S3-H  Evidence + S3 closeout
@@ -610,6 +634,7 @@ docs/tasks/jse-s3/S3-C-leaf-presentation.md
 docs/tasks/jse-s3/S3-D-composed-hardened-presentation.md
 docs/tasks/jse-s3/S3-E-curated-repository.md
 docs/tasks/jse-s3/S3-F-db-privilege-acceptance.md
+docs/tasks/jse-s3/S3-F-RLS-public-read-remediation.md
 docs/tasks/jse-s3/S3-G-live-homepage-integration.md
 docs/tasks/jse-s3/S3-H-evidence-closeout.md
 ```
@@ -629,7 +654,7 @@ PR 1 — S3-A planning/baseline
 PR 2 — S3-B contracts/tests
 PR 3 — S3-C + S3-D leaf then composed/hardened presentation
 PR 4 — S3-E repository implementation
-PR 5 — S3-F privilege evidence + S3-G live integration
+PR 5 — S3-F privilege evidence; S3-F-RLS in the migration-authority repo if blocked; then S3-G live integration
 PR 6 — S3-H closeout evidence
 ```
 
@@ -688,7 +713,7 @@ This planning document is ready to hand to implementation agents when:
 - [x] source COPY / HARDEN / REIMPLEMENT cuts are recorded;
 - [x] S3 dependency-addition rules are defined;
 - [x] fixture-first implementation order is defined;
-- [x] S3-A through S3-H exits are defined;
+- [x] S3-A through S3-H exits are defined (including S3-F-RLS when privilege gaps exist);
 - [x] sequential agent task packets exist under `docs/tasks/jse-s3/`;
 - [x] implementation has started (S3-A docs/metadata);
 - [ ] S3 acceptance evidence exists.
