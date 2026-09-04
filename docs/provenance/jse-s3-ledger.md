@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S3` |
-| Status | S3-C complete — leaf presentation adopted; composed UI and Supabase not started |
+| Status | S3-D complete — composed/hardened presentation adopted from fixtures; Supabase not started |
 | S2 / S3 start baseline | `jackpot-site main@7abb209f7bafd0da53d08027e5773eff272fa39a` |
 | Current `main` descendant at S3-A | `eb154a74652c537f2bc6a428e0c290bd11fe0e28` (S3 plan merge; contains `7abb209`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -41,7 +41,13 @@ Do not pre-claim migration. Add a row when an artifact is actually copied, harde
 | `src/components/v2/curated-promos/CuratedPromoEmptyState.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/components/v2/curated-promos/CuratedPromoEmptyState.tsx` | COPY | Explicit `import React` for node:test/`tsx` fixture exercise | leaf presentation tests | — |
 | `src/components/v2/curated-promos/CuratedPromoEvidenceBlock.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/components/v2/curated-promos/CuratedPromoEvidenceBlock.tsx` | COPY | Explicit `import React` for node:test/`tsx` fixture exercise | leaf presentation tests | — |
 | `src/components/v2/curated-promos/CuratedPromoSignalList.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/components/v2/curated-promos/CuratedPromoSignalList.tsx` | COPY | Explicit `import React` for node:test/`tsx` fixture exercise | leaf presentation tests | — |
-| source `globals.css` Tailwind utilities subset | n/a (reconstruct) | reconstruct | `src/app/globals.css` + `tailwind.config.js` + `postcss.config.js` | REIMPLEMENT tooling | Minimal Tailwind v3 base/components/utilities only; no chip-strip/carousel utilities; no brand theme yet | — | chip-strip/carousel CSS deferred to S3-D |
+| source `globals.css` Tailwind utilities subset | n/a (reconstruct) | reconstruct | `src/app/globals.css` + `tailwind.config.js` + `postcss.config.js` | REIMPLEMENT tooling | S3-C: minimal Tailwind v3. S3-D: added `.scrollbar-hide` and `.chip-strip-fade` only. No brand theme, no blog typography | composed presentation tests | no pulse-marker / blog CSS |
+| `src/components/v2/curated-promos/CuratedPromoFilterChips.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/components/v2/curated-promos/CuratedPromoFilterChips.tsx` | COPY | Explicit `import React` for node:test/`tsx` fixture exercise | composed presentation tests | — |
+| `src/components/v2/curated-promos/CuratedPromoCarousel.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY | `src/components/v2/curated-promos/CuratedPromoCarousel.tsx` | COPY | Explicit `import React` for node:test/`tsx` fixture exercise | composed presentation tests | — |
+| `src/lib/constants/nicheMap.ts` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/lib/constants/nicheMap.ts` | COPY + HARDEN | Presentation taxonomy only; no runtime change required | composed presentation tests | no dashboard/overlap deps |
+| `src/components/v2/curated-promos/CuratedPromoCard.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoCard.tsx` | COPY + HARDEN | Removed overlap import and primary-overlap badge (D-S3-02). Explicit `import React` | composed presentation tests | `curated-offer-event-overlap-display`, `event-display` |
+| `src/components/v2/curated-promos/CuratedPromoDetailSheet.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoDetailSheet.tsx` | COPY + HARDEN | Removed overlap/related-events UI and `useTracker` / `trackClick` (D-S3-02/03). Source CTA remains a plain outbound link | composed presentation tests | `useTracker`, `/api/log-click`, overlap display |
+| `src/components/v2/curated-promos/CuratedPromoDiscoveryWidget.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoDiscoveryWidget.tsx` | COPY + HARDEN | Removed `useTracker` and all interaction/view tracking effects (D-S3-03). Filter + open handlers are local state only | composed presentation tests | `useTracker`, `/api/log-interaction` |
 
 ## Deferred for initial S3 (do not adopt)
 
