@@ -54,4 +54,4 @@ Evidence (2026-09-04, local):
 
 ## Next
 
-S3-F — prove D-S3-06 against this identity. Do not mount `getCuratedPromos` on `/` until S3-F is `accepted` (S3-G).
+S3-F — prove D-S3-06 and D-S3-11 against this identity. Current S3-F conclusion is `blocked`. Do not mount `getCuratedPromos` on `/` until S3-F is `accepted` (S3-G).

@@ -81,6 +81,8 @@ Target curated reads must:
 - expose mapped public DTOs to UI code rather than a generic Supabase client;
 - fail safely for visitors while producing useful server-side operational evidence.
 
+S3 database acceptance (**D-S3-11**) is invoker + private producers: `public.v_curated_promo_discovery` with `security_invoker = true`, producers outside Data API exposed schemas, and `anon` API access only through that view. Invoker GRANTs on private producers are required and are not API exposure. Do not grant producer `SELECT` on an exposed schema, and do not apply Supabase DDL from this repository.
+
 ## Newsletter rule
 
 The browser calls only same-origin BFF routes in this repository.

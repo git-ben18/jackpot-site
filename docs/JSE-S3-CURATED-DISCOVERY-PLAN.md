@@ -216,7 +216,7 @@ The query remains server-side as an application architecture choice, but securit
 
 S3 acceptance must verify actual database behavior for the low-privilege identity.
 
-Required acceptance matrix:
+Required acceptance matrix (includes **D-S3-11**):
 
 ```text
 SELECT public.v_curated_promo_discovery
@@ -229,12 +229,21 @@ unrelated internal object reads
 → denied
 
 raw / canonical tables used to produce the view
-→ not newly exposed merely for jackpot-site
+→ not reachable via the Data API (see D-S3-11)
+
+public.v_curated_promo_discovery security_invoker
+→ true
+
+producer relations
+→ not in a PostgREST / Supabase Data API exposed schema
+
+anon SELECT on a producer via PostgREST (/rest/v1/<table>)
+→ missing or denied
 ```
 
 The view's ownership and execution behavior must be audited.
 
-Because PostgreSQL views may execute with creator privileges by default, explicitly determine whether `security_invoker = true` is appropriate and supported for this view. Do not mark S3's public-read boundary accepted until the view/grant/RLS behavior is understood and evidenced.
+`security_invoker = true` is the accepted setting for this view (**D-S3-11**). A security-definer view over `public` producers is not S3-accepted, even if SELECT on the view appears to work. Do not mark S3's public-read boundary accepted until the view/grant/RLS/schema-exposure behavior is understood and evidenced.
 
 ### D-S3-07 — Domain-specific repository, not generic Supabase access
 
@@ -326,6 +335,33 @@ Every source-derived runtime artifact adopted in S3 must record:
 - deferred/excluded imports.
 
 Do not wait until final closeout to reconstruct this information from memory.
+
+### D-S3-11 — Preferred public-read posture is invoker + private producers
+
+This is the accepted database posture for S3 public curated reads. It is a migration-authority concern, not a `jackpot-site` client change.
+
+```text
+PostgREST / Data API exposed schemas: do not include producer schemas
+
+public.v_curated_promo_discovery
+  WITH (security_invoker = true)
+        ↓
+private schema (not API-exposed)
+  producer tables + RLS
+  GRANT USAGE on the schema to anon
+  GRANT SELECT on view-backing producers to anon
+  write grants: ETL / service_role (or a dedicated writer) only
+```
+
+The site identity remains the Postgres role **`anon`** (publishable key, or documented anon compatibility). `jackpot-site` still queries only `public.v_curated_promo_discovery`.
+
+**“Not newly exposed”** in D-S3-06 means the producer is not a Data API resource (`/rest/v1/<producer>` missing or denied). It does **not** mean “zero GRANTs exist.” `security_invoker = true` requires the caller to `SELECT` the backing tables; those GRANTs belong on a **non-exposed** schema.
+
+Defense in depth: schema isolation **and** RLS on producers (published-row `SELECT` only; no anon writes). Do not add the private schema to Dashboard **Exposed schemas** / `PGRST_DB_SCHEMAS` in order to keep supabase-js writers working — writers must use a direct Postgres connection (or a `public` `SECURITY DEFINER` writer facade granted only to the writer role).
+
+A locked security-definer view that GRANTs only the view, with producers left in `public`, is **not** accepted for S3.
+
+S3-F must conclude `blocked` until this posture is evidenced. S3-F-RLS is the authorized remediation (schema move + invoker + grants + RLS), not a quick `ENABLE ROW LEVEL SECURITY` on `public` producers.
 
 ---
 
@@ -509,33 +545,35 @@ Tasks:
 
 - verify view grants for the low-privilege identity;
 - inspect view owner / security behavior;
-- determine and document `security_invoker` applicability;
+- prove `security_invoker = true` and that producers are outside API-exposed schemas (**D-S3-11**);
 - verify intended SELECT succeeds;
 - verify INSERT / UPDATE / DELETE are denied;
 - verify unrelated internal reads are denied;
-- verify underlying raw/canonical tables were not broadly exposed for the site;
+- verify producers are not Data API resources (PostgREST `/rest/v1/<producer>` missing or denied);
 - record non-secret evidence of these tests;
-- if view/grants/`security_invoker`/RLS must change, **stop** with S3-F `blocked` and implement **S3-F-RLS** through the current Supabase migration authority — do not apply ad-hoc production DDL from `jackpot-site`.
+- if view/grants/`security_invoker`/schema location/RLS must change, **stop** with S3-F `blocked` and implement **S3-F-RLS** through the current Supabase migration authority — do not apply ad-hoc production DDL from `jackpot-site`.
 
 Exit:
 
-- actual privilege behavior matches D-S3-06;
+- actual privilege behavior matches D-S3-06 and D-S3-11;
 - no service-role/secret key is needed for ordinary curated rendering;
 - unresolved view-privilege behavior blocks progression to S3-G;
 - required database DDL/grant changes are not applied from this repository.
 
 ### S3-F-RLS — Public-read RLS / grant remediation
 
-**Goal:** close missing or insufficient RLS, policies, grants, or `security_invoker` on the S3 public-read path in the **migration-authority** repo.
+**Goal:** close missing or insufficient RLS, policies, grants, schema isolation, or `security_invoker` on the S3 public-read path in the **migration-authority** repo so the live database matches **D-S3-11**.
 
 Tasks:
 
 - name the current published-view DDL owner before writing SQL;
 - enumerate `public.v_curated_promo_discovery`, its producer relations, and any other object the S3-E low-privilege role can reach;
-- enable RLS and add explicit policies (or record why RLS is not the control) on reachable base tables that lack them;
-- revoke stray GRANTs; do not grant producer-table SELECT for convenience;
-- set/document `security_invoker` when the view-owner audit requires it;
-- re-run the D-S3-06 matrix;
+- move view-backing producers into a schema that is **not** Data API exposed (do not leave them in `public` merely to keep PostgREST writers working);
+- recreate the published view with `security_invoker = true` over those private producers;
+- `GRANT SELECT` on the view to `anon`; `GRANT USAGE` + `GRANT SELECT` on view-backing private producers to `anon` (required for invoker — this is not API exposure);
+- enable RLS and add explicit published-row `SELECT` policies; no anon writes;
+- revoke stray GRANTs on API-exposed producer names; do not grant producer `SELECT` on an exposed schema “so the site works”;
+- re-run the D-S3-06 / D-S3-11 matrix;
 - record non-secret evidence; then let S3-F conclude `accepted`.
 
 Exit:
@@ -670,7 +708,8 @@ Stop implementation and resolve the boundary before continuing if any of the fol
 - public promo rendering appears to require a secret/service-role credential;
 - the published view exposes more data than the approved column/public DTO contract;
 - the low-privilege role can modify published data;
-- unrelated internal tables become readable as a side effect of S3 grants;
+- unrelated internal tables become readable as a side effect of S3 grants (invoker GRANTs on **private**, view-backing producers are required by D-S3-11 and are not this stop);
+- producer tables become Data API resources (D-S3-11);
 - event-discovery code is required after overlaps were deferred;
 - analytics becomes required for basic discovery UX;
 - production data failure can only be hidden by silently serving mock data;

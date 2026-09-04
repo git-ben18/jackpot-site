@@ -14,17 +14,42 @@
 
 Prove the public-read boundary is secure at the **database** layer for the low-privilege identity used by S3-E. Application code alone is not acceptance.
 
+Acceptance requires **D-S3-11** (invoker + private producers), not merely “SELECT on the view works.”
+
 ## Decisions to assume
 
-- **D-S3-06** — acceptance matrix is mandatory
-- View ownership / `security_invoker` behavior must be understood and documented
+- **D-S3-05** — publishable (or documented anon compatibility) only; never service-role
+- **D-S3-06** — acceptance matrix is mandatory (includes D-S3-11 rows)
+- **D-S3-11** — `security_invoker = true` on `public.v_curated_promo_discovery`; producers in a non-API schema; `anon` Data API access only through that view
 - Unresolved privilege questions **block** S3-G
+
+## Preferred posture (D-S3-11)
+
+```text
+PostgREST / Data API exposed schemas: do not include producer schemas
+
+public.v_curated_promo_discovery
+  WITH (security_invoker = true)
+        ↓
+private schema (not API-exposed)
+  producer tables + RLS
+  GRANT USAGE + GRANT SELECT on view-backing producers to anon
+  write grants: ETL / service_role (or a dedicated writer) only
+```
+
+The S3-E identity is Postgres role **`anon`** (publishable key → `anon`; documented `SUPABASE_ANON_KEY` fallback is the same role class).
+
+**“Not newly exposed”** means the producer is not a Data API resource. Invoker GRANTs on a private schema are required and are not API exposure.
+
+A security-definer view over `public` producers is **`blocked`**, even if view SELECT succeeds and mutations fail.
+
+Suggested authorized remediation (not applied from this repo): [docs/evidence/jse-s3-f-rls-suggested-migration.sql](../../evidence/jse-s3-f-rls-suggested-migration.sql).
 
 ## Migration authority (hard rule)
 
 `jackpot-site` does **not** own Supabase schema, grant, RLS, or `security_invoker` migrations.
 
-If S3-F discovers that the view definition, grants, `security_invoker`, RLS, or related producer-table privileges must change:
+If S3-F discovers that the view definition, grants, `security_invoker`, producer schema location, RLS, or related privileges must change:
 
 1. **stop** with conclusion `blocked`;
 2. record the required change and evidence that motivated it;
@@ -33,7 +58,7 @@ If S3-F discovers that the view definition, grants, `security_invoker`, RLS, or 
 5. do **not** apply ad-hoc production DDL from `jackpot-site`;
 6. do **not** invent service-role usage in this repository as a workaround.
 
-Re-run this packet’s acceptance matrix after S3-F-RLS is `remediated`. Only then may S3-F conclude `accepted`. If the matrix already matches D-S3-06 with no RLS/grant gap, mark S3-F-RLS `N/A` and continue.
+Re-run this packet’s acceptance matrix after S3-F-RLS is `remediated`. Only then may S3-F conclude `accepted`. If the live database already matches D-S3-06 and D-S3-11 with no gap, mark S3-F-RLS `N/A` and continue.
 
 ## Implementation requirements
 
@@ -52,21 +77,31 @@ unrelated internal object reads
 → denied
 
 raw / canonical producer tables
-→ not newly exposed merely for jackpot-site
+→ not reachable via the Data API
+
+public.v_curated_promo_discovery
+→ security_invoker = true
+
+producer relations
+→ schema is not Data API exposed
+
+anon SELECT on producer via PostgREST (/rest/v1/<table>)
+→ missing or denied
 ```
 
 4. Inspect and document:
    - view owner
    - grants to the low-privilege role
-   - whether `security_invoker = true` is set / appropriate / supported
-   - RLS relevance if any
+   - `security_invoker = true` (required; record if missing or false)
+   - producer schema names vs Dashboard / `PGRST_DB_SCHEMAS` exposed list
+   - RLS on view-backing producers
 5. Record non-secret evidence in `docs/evidence/jse-s3-db-privilege.md` (or `docs/tasks/jse-s3/_status-S3-F.md`):
    - date / environment name
    - role identity class (not the secret value)
    - commands or query descriptions used
-   - results (success/denied)
+   - results (success/denied / not executed)
    - conclusion: `accepted` | `blocked`
-6. If blocked by missing/incorrect view, grants, `security_invoker`, or RLS: follow the **Migration authority** rule above and implement **S3-F-RLS**. List the exact relations and gaps for the migration owner. Do **not** proceed to invent service-role usage as a workaround.
+6. If blocked by missing/incorrect view, grants, `security_invoker`, producer schema, or RLS: follow the **Migration authority** rule above and implement **S3-F-RLS**. List the exact relations and gaps for the migration owner. Do **not** proceed to invent service-role usage as a workaround.
 7. No production cutover. No homepage wiring in this task unless already present and unchanged.
 
 ## Suggested deliverables
@@ -90,8 +125,9 @@ raw / canonical producer tables
 - [ ] SELECT success evidenced for approved view/columns
 - [ ] Mutation denial evidenced
 - [ ] Unrelated internal read denial evidenced
-- [ ] Producer-table exposure reviewed
-- [ ] View owner / security_invoker determination recorded
+- [ ] Producer-table Data API exposure reviewed (D-S3-11)
+- [ ] View owner / `security_invoker = true` recorded
+- [ ] Producer schema is not API-exposed (or `blocked`)
 - [ ] Explicit `accepted` or `blocked` conclusion
 - [ ] If DDL/grants must change: `blocked` with S3-F-RLS opened (no ad-hoc DDL from jackpot-site)
 - [ ] No service-role workaround introduced
@@ -101,9 +137,9 @@ raw / canonical producer tables
 
 ```text
 Implement only S3-F from docs/tasks/jse-s3/S3-F-db-privilege-acceptance.md
-Prove D-S3-06 against the low-privilege identity. Document
-security_invoker/owner/grants. If view/grants/RLS must change, stop, conclude blocked, and
-continue with S3-F-RLS in the Supabase migration authority — do not
-apply DDL from jackpot-site and do not use service-role. No homepage
-live integration.
+Prove D-S3-06 and D-S3-11 against the low-privilege identity. Document
+security_invoker/owner/grants/producer schema. If view/grants/RLS/schema
+must change, stop, conclude blocked, and continue with S3-F-RLS in the
+Supabase migration authority — do not apply DDL from jackpot-site and
+do not use service-role. No homepage live integration.
 ```

@@ -17,7 +17,7 @@ Hand an agent **one task file** at a time. Each file is self-contained implement
 Implement only task <ID> from:
 docs/tasks/jse-s3/<file>
 
-Follow docs/JSE-S3-CURATED-DISCOVERY-PLAN.md frozen decisions D-S3-01..D-S3-10.
+Follow docs/JSE-S3-CURATED-DISCOVERY-PLAN.md frozen decisions D-S3-01..D-S3-11.
 Read AGENTS.md and docs/architecture/SOURCE_BOUNDARY.md before runtime changes.
 Do not expand scope to other task IDs unless listed as in-scope dependency work.
 Open a focused PR for this task (or the PR grouping noted in the plan) when done.
@@ -32,7 +32,7 @@ S3-A → S3-B → S3-C → S3-D → S3-E → S3-F → S3-F-RLS? → S3-G → S3-
 
 Do **not** start S3-E before S3-D exits. Do **not** start S3-G before S3-F exits with conclusion `accepted`. Fixture-first is mandatory (D-S3-08).
 
-**S3-F-RLS** runs when S3-F (or an equivalent audit) finds missing/insufficient RLS, grants, or `security_invoker` on the public-read path. It is required before S3-F may conclude `accepted` unless S3-F already proved there is no gap (then mark S3-F-RLS `N/A`). DDL is applied only in the Supabase migration authority — never from this repository.
+**S3-F-RLS** runs when S3-F (or an equivalent audit) finds the live database does not match **D-S3-11** (invoker + private producers, plus RLS/grants). It is required before S3-F may conclude `accepted` unless S3-F already proved there is no gap (then mark S3-F-RLS `N/A`). DDL is applied only in the Supabase migration authority — never from this repository.
 
 Recommended PR grouping (from the plan):
 

@@ -154,6 +154,8 @@ Specifically, do not migrate:
 
 The target must reimplement a narrow, low-privilege public-read boundary.
 
+S3 database acceptance (**D-S3-11**) prefers `security_invoker = true` on `public.v_curated_promo_discovery` with producers in a schema the Data API does not expose. `jackpot-site` still queries only that view. Schema/grant/RLS/`security_invoker` changes belong to the current published-view migration authority, not this repository.
+
 ## Newsletter acquisition boundary
 
 The target owns browser-facing acquisition UX and same-origin BFF routes, not canonical subscriber persistence.

@@ -3,12 +3,12 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S3` |
-| Status | S3-E complete — low-privilege curated repository reimplemented; homepage not live-wired |
+| Status | S3-E complete; S3-F `blocked` (D-S3-11 not evidenced; S3-F-RLS opened). Homepage not live-wired. |
 | S2 / S3 start baseline | `jackpot-site main@7abb209f7bafd0da53d08027e5773eff272fa39a` |
 | Current `main` descendant at S3-A | `eb154a74652c537f2bc6a428e0c290bd11fe0e28` (S3 plan merge; contains `7abb209`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
 | Verification SHA for §5 paths | `466bfb065a9c34010ee0f0de22b419299259fa46` |
-| Authority | [docs/JSE-S3-CURATED-DISCOVERY-PLAN.md](../JSE-S3-CURATED-DISCOVERY-PLAN.md) D-S3-01..D-S3-10 |
+| Authority | [docs/JSE-S3-CURATED-DISCOVERY-PLAN.md](../JSE-S3-CURATED-DISCOVERY-PLAN.md) D-S3-01..D-S3-11 |
 
 Do not pre-claim migration. Add a row when an artifact is actually copied, hardened, or reimplemented.
 
