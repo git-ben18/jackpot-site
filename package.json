@@ -7,12 +7,14 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/lib/__tests__/curatedPromoDiscoveryMapper.test.ts src/lib/__tests__/curated-promo-display.test.ts src/lib/__tests__/curatedPromoSignalCategory.test.ts src/lib/__tests__/curated-promo-leaf-presentation.test.ts src/lib/__tests__/curated-promo-composed-presentation.test.ts"
+    "test": "tsx --test src/lib/__tests__/curatedPromoDiscoveryMapper.test.ts src/lib/__tests__/curated-promo-display.test.ts src/lib/__tests__/curatedPromoSignalCategory.test.ts src/lib/__tests__/curated-promo-leaf-presentation.test.ts src/lib/__tests__/curated-promo-composed-presentation.test.ts src/lib/__tests__/curated-promo-repository.test.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
     "next": "^15.3.3",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.15.29",
