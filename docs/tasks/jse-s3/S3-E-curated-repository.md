@@ -69,7 +69,7 @@ getCuratedPromos({ activeOnly: true, limit: 50 })
 
 ## Out of scope
 
-- Database grant/RLS verification (S3-F)
+- Database grant/RLS verification (S3-F) and RLS remediation (S3-F-RLS)
 - Homepage live wiring (S3-G)
 - Copying source curated server helper
 - Analytics / overlaps

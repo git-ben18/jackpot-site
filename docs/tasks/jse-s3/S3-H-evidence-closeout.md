@@ -33,7 +33,7 @@ Produce evidence sufficient to call JSE-S3 implemented and accepted at the targe
 | Mapper/helper/UI test results | commands + pass/fail |
 | Build/typecheck results | commands + pass/fail |
 | Live public-view behavior | what was verified and where |
-| Low-privilege DB matrix | link to S3-F evidence; must be `accepted` |
+| Low-privilege DB matrix | link to S3-F evidence; must be `accepted`. If S3-F was blocked, also link S3-F-RLS remediation evidence |
 | No service-role/secret fallback | code + config evidence |
 | Event-overlap deferral | restate D-S3-02 |
 | Analytics deferral/no-op | restate D-S3-03 |
