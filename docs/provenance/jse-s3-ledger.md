@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S3` |
-| Status | S3-E / W3-E complete — low-privilege repository over `api.v_curated_promo_discovery`; homepage live mount still S3-G |
+| Status | S3-F **ACCEPTED** (DB-W3-D + W3-E); S3-F-RLS **N/A**; homepage live mount still S3-G |
 | S2 / S3 start baseline | `jackpot-site main@7abb209f7bafd0da53d08027e5773eff272fa39a` |
 | Current `main` descendant at S3-A | `eb154a74652c537f2bc6a428e0c290bd11fe0e28` (S3 plan merge; contains `7abb209`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |

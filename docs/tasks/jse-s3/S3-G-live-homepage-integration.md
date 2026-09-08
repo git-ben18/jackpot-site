@@ -8,6 +8,7 @@
 | Blocks | S3-H |
 | Estimate | M |
 | PR grouping | PR 5 (with S3-F) |
+| Prerequisite (2026-09-08) | S3-F **ACCEPTED** — [`_status-S3-F.md`](./_status-S3-F.md) |
 
 ## Goal
 

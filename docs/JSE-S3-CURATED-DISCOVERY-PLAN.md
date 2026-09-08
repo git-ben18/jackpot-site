@@ -512,6 +512,8 @@ Exit:
 
 **Goal:** prove that the public-read boundary is secure at the database layer, not merely in application code.
 
+**Status (2026-09-08):** **ACCEPTED** — evidence reconciled from DB-W3-D low-privilege acceptance + W3-E repository cutover. Record: `docs/evidence/jse-s3-db-privilege.md`, `docs/tasks/jse-s3/_status-S3-F.md`.
+
 Tasks:
 
 - verify view grants for the low-privilege identity;
@@ -534,6 +536,8 @@ Exit:
 ### S3-F-RLS — Public-read RLS / grant remediation
 
 **Goal:** close missing or insufficient RLS, policies, grants, or `security_invoker` on the S3 public-read path in the **migration-authority** repo.
+
+**Status (2026-09-08):** **N/A — original S3-F blocker resolved through DB-W3.** S3-F-RLS was opened because the original public view could not simultaneously preserve publish isolation and serve anon under `security_invoker=true`. DB-W3 superseded that physical contract with `api.v_curated_promo_discovery` and independently proved D-S3-06. No additional S3-F-RLS migration is required. Packet retained for historical remediation guidance if S3-F later finds a database-layer regression. See `docs/tasks/jse-s3/_status-S3-F-RLS.md`.
 
 Tasks:
 
