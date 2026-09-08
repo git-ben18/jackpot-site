@@ -73,7 +73,7 @@ Mount curated discovery on `/`. Do not restore dashboard banner/`isSupabaseConfi
 ## Acceptance checklist
 
 - [ ] S3-F was `accepted` before merge intent
-- [ ] Homepage renders curated discovery from `public.v_curated_promo_discovery`
+- [ ] Homepage renders curated discovery from `api.v_curated_promo_discovery`
 - [ ] Empty and error states are visitor-safe
 - [ ] No silent production mock fallback
 - [ ] No high-privilege credential used

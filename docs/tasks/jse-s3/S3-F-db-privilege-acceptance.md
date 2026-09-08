@@ -14,6 +14,8 @@
 
 Prove the public-read boundary is secure at the **database** layer for the low-privilege identity used by S3-E. Application code alone is not acceptance.
 
+> **DB-W3 note:** low-privilege PostgREST acceptance for `api.v_curated_promo_discovery` is already recorded in `docs/evidence/db-wave-3/W3-D-low-privilege-acceptance.md` (`ACCEPTED`). S3-F should cite that evidence and only reopen DB checks if the live contract drifts.
+
 ## Decisions to assume
 
 - **D-S3-06** — acceptance matrix is mandatory
@@ -42,7 +44,7 @@ Re-run this packet’s acceptance matrix after S3-F-RLS is `remediated`. Only th
 3. Against a non-production or explicitly approved environment, gather evidence for:
 
 ```text
-SELECT public.v_curated_promo_discovery (approved columns)
+SELECT api.v_curated_promo_discovery (approved columns)
 → succeeds for intended published rows
 
 INSERT / UPDATE / DELETE on the view (or clear equivalent proof)

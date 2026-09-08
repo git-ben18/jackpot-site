@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S3` |
-| Status | S3-D complete — composed/hardened presentation adopted from fixtures; Supabase not started |
+| Status | S3-E / W3-E complete — low-privilege repository over `api.v_curated_promo_discovery`; homepage live mount still S3-G |
 | S2 / S3 start baseline | `jackpot-site main@7abb209f7bafd0da53d08027e5773eff272fa39a` |
 | Current `main` descendant at S3-A | `eb154a74652c537f2bc6a428e0c290bd11fe0e28` (S3 plan merge; contains `7abb209`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -48,6 +48,7 @@ Do not pre-claim migration. Add a row when an artifact is actually copied, harde
 | `src/components/v2/curated-promos/CuratedPromoCard.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoCard.tsx` | COPY + HARDEN | Removed overlap import and primary-overlap badge (D-S3-02). Explicit `import React` | composed presentation tests | `curated-offer-event-overlap-display`, `event-display` |
 | `src/components/v2/curated-promos/CuratedPromoDetailSheet.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoDetailSheet.tsx` | COPY + HARDEN | Removed overlap/related-events UI and `useTracker` / `trackClick` (D-S3-02/03). Source CTA remains a plain outbound link | composed presentation tests | `useTracker`, `/api/log-click`, overlap display |
 | `src/components/v2/curated-promos/CuratedPromoDiscoveryWidget.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoDiscoveryWidget.tsx` | COPY + HARDEN | Removed `useTracker` and all interaction/view tracking effects (D-S3-03). Filter + open handlers are local state only | composed presentation tests | `useTracker`, `/api/log-interaction` |
+| `src/lib/server/curatedPromos.ts` (behavior only) | `466bfb065a9c34010ee0f0de22b419299259fa46` | REIMPLEMENT | `src/lib/server/curatedPromoRepository.ts` + `src/lib/server/publicSupabase.ts` | REIMPLEMENT | DB-W3 `api` schema; publishable/anon only; no service-role; no overlaps; no public-view fallback; structured fail-closed result | `curatedPromoRepository.test.ts` | `artifact-queries.ts`, `supabase-server.ts`, overlap fetch, admin client |
 
 ## Deferred for initial S3 (do not adopt)
 
