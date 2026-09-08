@@ -4,16 +4,16 @@
 |---|---|
 | Date | 2026-09-08 |
 | Packet | [W3-A-contract-inventory.md](./W3-A-contract-inventory.md) |
-| Result | Complete — `READY FOR W3-B` |
+| Result | **COMPLETE** — `READY FOR W3-B` |
 | Evidence | [docs/evidence/db-wave-3/W3-A-contract-inventory.md](../../evidence/db-wave-3/W3-A-contract-inventory.md) |
 
 ## Checklist
 
-- [x] current view definition captured (normalized + source pointers; live `pg_get_viewdef` deferred to W3-C preflight)
-- [x] owner/security/grants captured (owner + `security_invoker=true`; grant gap recorded)
-- [x] producer dependency graph captured
-- [x] actual columns/types captured (inferred types; allowlist comparison complete)
-- [x] JSE-S3 allowlist comparison complete
+- [x] current view definition captured (live deps + normalized CTE/join shape)
+- [x] owner/security/grants captured (live identity; historical pre–W3-C ACL documented)
+- [x] producer dependency graph captured (`publish` instances + signals only)
+- [x] actual columns/types captured (26 live columns; `promo_id`/`observation_id` = `text`)
+- [x] JSE-S3 allowlist comparison complete (21-column subset)
 - [x] cross-repo consumer inventory complete
 - [x] event overlap confirmed deferred
 - [x] evidence document committed

@@ -2,9 +2,19 @@
 
 ## Status
 
-**PLANNING AUTHORITY — Wave 2 gate satisfied; W3-A/B design accepted; W3-C+ pending in `core`**
+**AUTHORITY — live `api` contract applied and W3-D accepted; W3-E next**
 
-This document defines the database-governance Wave 3 (`DB-W3`) target for `jackpot-site`.
+| Packet | Status |
+|---|---|
+| W3-A | **COMPLETE** |
+| W3-B | **APPROVED** |
+| W3-C | **APPLIED AND VERIFIED** (core migration-history reconciliation required) |
+| W3-D | **ACCEPTED** |
+| W3-E | **NEXT** |
+| W3-F | pending |
+| W3-G | pending |
+
+This document defines the database-governance Wave 3 (`DB-W3`) contract for `jackpot-site`.
 
 It is intentionally distinct from `JSE-S3`:
 
@@ -16,17 +26,9 @@ DB-W3
 = establish the governed Supabase application-read contract consumed by jackpot-site
 ```
 
-Wave 2 is complete at the database-governance level:
+Wave 2 is complete at the database-governance level. W3-A–D evidence lives under `docs/evidence/db-wave-3/`.
 
-- greenfield serving projections were moved from `public.*` to restricted `publish.*`;
-- `publish` is exposed through PostgREST for approved server-side access;
-- producer access is service-role only at the schema/relation layer;
-- the legacy overlap consumer was cut over to explicit `publish`;
-- Wave 2 closeout evidence exists in `rewards-maxxing-frontend`.
-
-The refreshed `DATABASE_PUBLISH_CONTRACT_HANDOFF.md` is on `jackpot-site/main` and records Wave 2 as complete.
-
-W3-A inventory and W3-B design acceptance are recorded under `docs/evidence/db-wave-3/`. Migration SQL remains `core` authority (W3-C).
+`git-ben18/core` remains Supabase migration authority. Live W3-C was applied/verified in Supabase; a convergent `core` migration is still required so history matches production.
 
 This document does not itself apply DDL.
 
@@ -121,7 +123,8 @@ Rules:
 - no `select('*')` in `jackpot-site`;
 - no lineage/debug/admin columns are added without a contract decision;
 - the database view contract and application repository allowlist must agree;
-- mapper/DTO boundaries remain the application-level protection against database-shape leakage.
+- mapper/DTO boundaries remain the application-level protection against database-shape leakage;
+- the API view also enforces `WHERE active_status IN ('active','unknown')` as part of the publication contract (`promo_id` is `text`).
 
 ---
 
@@ -158,19 +161,16 @@ Existing `publish.published_curated_offer_event_overlaps` remains internal produ
 
 Wave 2 established `publish.*` as the internal greenfield serving domain.
 
-DB-W3 must inventory the exact producer dependencies of the curated-discovery contract rather than guessing them.
-
-Likely relevant producer relations include members of the moved Wave 2 family such as:
+Accepted API view dependencies (exact):
 
 ```text
 publish.published_curated_offer_instances_raw
 publish.published_curated_offer_signals_raw
-publish.published_curated_offer_day
 ```
 
-The exact view dependency graph must be taken from the live/database-authoritative view definition and migration history during W3-A.
+Do not grant `jackpot-site` / `anon` direct SELECT on producer tables.
 
-Do not grant `jackpot-site` direct SELECT on producer tables for convenience.
+Do not define `api.v_curated_promo_discovery` by chaining through `public.v_curated_promo_discovery`.
 
 ---
 
@@ -198,7 +198,8 @@ Required invariants:
 
 ```text
 anon SELECT api.v_curated_promo_discovery
-→ succeeds for all rows the view returns
+→ succeeds for rows matching the view predicate
+   (active_status IN ('active','unknown'))
 
 INSERT / UPDATE / DELETE api contract
 → denied for anon
@@ -239,50 +240,60 @@ The exact Supabase-js implementation may vary, but schema selection must be expl
 
 ## 8. View execution / RLS / grants
 
-W3-B accepted posture (see evidence):
+Accepted posture:
 
 ```text
-owner = postgres
+owner            = postgres
 security_invoker = false
+security_barrier = true
 ```
 
-Explicit public-safety decision:
+Public disclosure boundary (both required):
 
 ```text
-Underlying publish RLS is intentionally bypassed for this API view.
-The API view itself is the public disclosure boundary.
-Every row reachable through its definition is classified public-safe.
+1. explicit 21-column projection
+2. WHERE i.active_status IN ('active', 'unknown')
 ```
 
-Application filters such as `activeOnly` are not disclosure controls.
+```text
+Underlying publish RLS is intentionally not relied upon to filter rows
+for api.v_curated_promo_discovery.
+
+The API view itself is the public disclosure boundary.
+
+anon receives SELECT on the API view only and receives no direct
+publish privileges.
+```
+
+Application filters such as `activeOnly` may be redundant UX shaping; public safety must not depend on them.
 
 Do not solve view access by broadly granting producer-table SELECT to `anon`.
-
-If a future row class is not public-safe under owner-rights, revise the view definition (or abandon owner-rights) before exposing it through `api`.
 
 ---
 
 ## 9. Migration authority
 
-Supabase schema / view / grant / RLS / PostgREST configuration changes for DB-W3 belong to the current greenfield migration authority:
+Supabase schema / view / grant / RLS / PostgREST configuration changes for DB-W3 belong to:
 
 ```text
 git-ben18/core
 ```
 
-`jackpot-site` must not start a second database migration history and must not apply ad-hoc production DDL.
+`jackpot-site` must not start a second database migration history.
+
+Live W3-C was applied and verified in Supabase (SQL Editor). An equivalent convergent migration in `core` remains required so repository migration history matches the accepted production state. That follow-up is not authored from `jackpot-site`.
 
 Expected responsibility split:
 
 ```text
 core
-  → api schema/view migration
-  → grants / RLS / view options
+  → api schema/view migration (incl. history reconciliation)
+  → grants / view options
   → PostgREST schema configuration when required
   → operator/evidence SQL
 
 jackpot-site
-  → low-privilege domain repository
+  → low-privilege domain repository (W3-E)
   → explicit api schema selection
   → selected-column query
   → mapper / DTO / UI integration
@@ -319,11 +330,9 @@ to the accepted DB-W3 contract:
 api.v_curated_promo_discovery
 ```
 
-after W3-D acceptance.
+W3-D is **ACCEPTED**. W3-E / S3-E must cut over to the explicit `api` contract (not `public`).
 
-S3-E must not merge against the old `public` physical contract if DB-W3 has not yet accepted the replacement.
-
-S3-G remains blocked until the API contract is accepted and S3-E is updated.
+S3-G remains blocked until W3-E cutover is complete.
 
 ---
 
@@ -358,19 +367,20 @@ Do not remove the old view until W3-F proves its disposition.
 Sequential implementation packets:
 
 ```text
-W3-A  Contract inventory
+W3-A  COMPLETE — Contract inventory
   ↓
-W3-B  API schema / view design
+W3-B  APPROVED — API schema / view design
   ↓
-W3-C  Migration + privileges
+W3-C  APPLIED AND VERIFIED — Migration + privileges
+      (core migration-history reconciliation tracked)
   ↓
-W3-D  Low-privilege acceptance
+W3-D  ACCEPTED — Low-privilege acceptance
   ↓
-W3-E  jackpot-site cutover
+W3-E  NEXT — jackpot-site cutover
   ↓
-W3-F  public contract retirement decision
+W3-F  pending — public contract retirement decision
   ↓
-W3-G  evidence + closeout
+W3-G  pending — evidence + closeout
 ```
 
 Task files live under:
@@ -404,18 +414,18 @@ Stop and resolve the boundary before continuing when:
 
 DB-W3 is complete only when all are true:
 
-- [ ] exact old public-view definition/dependencies recorded;
-- [ ] accepted `api.v_curated_promo_discovery` contract recorded;
-- [ ] `api` schema/view migration merged in `core`;
-- [ ] required production/operator apply completed;
-- [ ] low-privilege explicit-`api` SELECT succeeds;
-- [ ] low-privilege writes are denied;
-- [ ] low-privilege `publish.*` reads are denied;
-- [ ] unrelated legacy/internal reads were not introduced;
-- [ ] PostgREST `api` routing is proven;
+- [x] exact old public-view definition/dependencies recorded;
+- [x] accepted `api.v_curated_promo_discovery` contract recorded;
+- [ ] `api` schema/view migration merged in `core` (live apply done; history reconciliation pending);
+- [x] required production/operator apply completed;
+- [x] low-privilege explicit-`api` SELECT succeeds;
+- [x] low-privilege writes are denied;
+- [x] low-privilege `publish.*` reads are denied;
+- [x] unrelated legacy/internal reads were not introduced by `api`;
+- [x] PostgREST `api` routing is proven;
 - [ ] `jackpot-site` repository queries explicit `api` schema;
-- [ ] selected-column allowlist remains enforced;
-- [ ] tests/typecheck/build pass;
+- [ ] selected-column allowlist remains enforced in site repository;
+- [ ] tests/typecheck/build pass for cutover;
 - [ ] `public.v_curated_promo_discovery` consumer sweep is complete;
 - [ ] retain/retire disposition for the old public view is recorded;
 - [ ] DB-W3 closeout evidence is committed.

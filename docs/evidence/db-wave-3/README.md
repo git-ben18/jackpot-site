@@ -2,7 +2,20 @@
 
 This directory stores non-secret operational and acceptance evidence for database-governance Wave 3.
 
-Expected files:
+## Current packet status
+
+```text
+W3-A  COMPLETE                         → W3-A-contract-inventory.md
+W3-B  APPROVED                         → W3-B-api-schema-design-acceptance.md
+W3-C  APPLIED AND VERIFIED             → W3-C-migration-apply.md
+      (core migration-history reconciliation required)
+W3-D  ACCEPTED                         → W3-D-low-privilege-acceptance.md
+W3-E  NEXT
+W3-F  pending
+W3-G  pending
+```
+
+## Expected files
 
 ```text
 W3-A-contract-inventory.md

@@ -8,6 +8,7 @@
 | Blocks | W3-D |
 | Migration authority | `git-ben18/core` |
 | `jackpot-site` DDL | **Forbidden** |
+| Live status | **APPLIED AND VERIFIED** in Supabase SQL Editor — see [_status-W3-C.md](./_status-W3-C.md) and [W3-C-migration-apply.md](../../evidence/db-wave-3/W3-C-migration-apply.md). Convergent `core` migration-history reconciliation still required. |
 
 ## Goal
 

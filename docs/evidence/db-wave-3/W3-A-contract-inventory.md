@@ -4,9 +4,9 @@
 |---|---|
 | Packet | DB-W3-A |
 | Date | 2026-09-08 |
-| Environment | Documentation + read-only catalog evidence (no live DDL; no production probe in this packet) |
-| State | **VERIFIED** (inventory) → conclusion **READY FOR W3-B** |
-| Branch | `docs/db-w3-a-b-contract-design` |
+| Environment | Live Supabase catalog (operator queries) + Wave 0/2 evidence |
+| State | **COMPLETE** → conclusion **READY FOR W3-B** |
+| Branch | reconciled on `docs/db-w3-d-low-privilege-acceptance` |
 
 ## 1. Baselines recorded
 
@@ -23,36 +23,19 @@ Gate check: refreshed Wave 2 handoff is on `jackpot-site/main` → **W3-A may pr
 
 ---
 
-## 2. Authoritative object identity
+## 2. Authoritative object identity (live)
 
-| Property | Value | Evidence |
-|---|---|---|
-| Schema / name | `public.v_curated_promo_discovery` | Wave 0/2 live catalog; Stage B smoke |
-| Owner | `postgres` | Wave 0 closeout; Wave 2 Step 3C view evidence |
-| `security_invoker` | `true` | Wave 0 closeout; `WAVE_2_STEP_3C_VIEW_TRIGGER_POLICY_EVIDENCE.csv` |
-| Relkind | view | Wave 2 Step 3C |
-| Dependent functions in view body | none | Wave 0: only related routine is `touch_published_curated_updated_at()` on **base tables**, not the view |
+| Property | Value |
+|---|---|
+| Schema / name | `public.v_curated_promo_discovery` |
+| Owner | `postgres` |
+| Relkind | view |
+| `security_invoker` | `true` |
+| Dependent functions in view body | none (related routine `touch_published_curated_updated_at()` is on base tables only) |
 
-### Pre–Wave 2 dependency graph (live catalog)
+### Live dependency graph
 
-```text
-public.v_curated_promo_discovery
-  ← public.published_curated_offer_instances_raw
-  ← public.published_curated_offer_signals_raw
-```
-
-Source: `WAVE_2_STEP_3C_VIEW_TRIGGER_POLICY_EVIDENCE.csv` / Wave 0 closeout.
-
-### Post–Wave 2 expected dependency graph
-
-Wave 2 Stage B physically `SET SCHEMA` those two tables into `publish` and smoke-selects:
-
-```sql
-select count(*) as curated_discovery_rows
-from public.v_curated_promo_discovery;
-```
-
-PostgreSQL preserves view OID references across `SET SCHEMA`, so after Stage B the same view object depends on:
+Exact live definition references only:
 
 ```text
 public.v_curated_promo_discovery
@@ -60,49 +43,38 @@ public.v_curated_promo_discovery
   ← publish.published_curated_offer_signals_raw
 ```
 
-The view **intentionally remains in `public`** during Wave 2 (Wave 2A report / Stage B packet: Wave 3 consumer concern).
+No event-day or event-overlap relation is in this view.
 
----
-
-## 3. View definition (normalized)
-
-Exact live `pg_get_viewdef` text was **not re-exported** in this packet. Authoritative **creation/shape** sources:
-
-1. **Applied-style DDL with `security_invoker = true`:**  
-   `rewards-maxxing-frontend/_docs/planning/epic-a-curated-promo-discovery/epic-a-v0-supabase-migration-proposal.sql`
-2. **Richer read-model guide DDL (same contract family):**  
-   `epic-a-slice-a2-supabase-read-model-guide.md` § Frontend view
-3. **Live security/dependency confirmation:** Wave 0 / Wave 2 Step 3C evidence in `core`
-
-Normalized behavior (both DDL variants):
+### Normalized live behavior
 
 ```text
-WITH signal_rollup AS (
-  aggregate signal_families, signal_types, gameplay_tags/badges,
-  signals_json, top_signals_json, evidence_json
-  FROM …published_curated_offer_signals_raw
-  GROUP BY promo_id
-)
-SELECT
-  instance identity + display fields from …published_curated_offer_instances_raw i
-  LEFT JOIN signal_rollup r ON r.promo_id = i.promo_id
+signal_rollup CTE
+    ↓
+aggregate signal families/types/JSON evidence from
+publish.published_curated_offer_signals_raw
+
+LEFT JOIN
+
+publish.published_curated_offer_instances_raw
 ```
 
-No embedded `ORDER BY` / `LIMIT` in the view; consumers apply filters/limits in application SQL/PostgREST.
+No embedded `ORDER BY` / `LIMIT` in the view.
 
-**Gap (documented, non-blocking):** byte-identical live view text vs planning SQL was not re-fetched. Identity, owner, `security_invoker`, producer deps, and Stage B executability are established. W3-C must `pg_get_viewdef('public.v_curated_promo_discovery', true)` in the approved environment before authoring the final `api` migration body.
+### Historical pre–Wave 2 dependency note
+
+Wave 0 / Wave 2 Step 3C catalog previously recorded the same OID pair while tables still lived in `public`. Stage B `SET SCHEMA` moved those producers to `publish`; the public view remained in `public` as a Wave 3 consumer concern.
 
 ---
 
-## 4. Output columns and types
+## 3. Exact live public-view columns / types (26)
 
-### Full public view contract (planning + frontend docs)
+Verified live catalog types:
 
-| Column | Inferred type | In JSE-S3 allowlist? |
+| Column | Type | In JSE-S3 / API allowlist? |
 |---|---|---|
 | `promo_id` | `text` | yes |
 | `promo_slug` | `text` | yes |
-| `observation_id` | `uuid` | **no** (lineage) |
+| `observation_id` | `text` | **no** (lineage) |
 | `brand` | `text` | yes |
 | `market_slug` | `text` | yes |
 | `location_label` | `text` | yes |
@@ -127,33 +99,33 @@ No embedded `ORDER BY` / `LIMIT` in the view; consumers apply filters/limits in 
 | `created_at` | `timestamptz` | **no** |
 | `updated_at` | `timestamptz` | **no** |
 
-Types are inferred from Epic A DDL/expressions and mapper usage; live `information_schema.columns` was not re-queried here (**gap**, non-blocking for design).
+Corrections vs early draft inventory:
 
-### JSE-S3 allowlist comparison
+```text
+promo_id       = text   (not uuid)
+observation_id = text   (not uuid)
+```
 
-Every JSE-S3 allowlist column is present on the public view contract. Extra public columns are lineage/admin fields already excluded by:
+The JSE-S3 / DB-W3 API public allowlist is the **21-column** subset excluding lineage columns above.
 
-- legacy `CURATED_PROMO_DISCOVERY_SELECT` in `rewards-maxxing-frontend/src/lib/server/curatedPromos.ts`
-- jackpot-site mapper `CuratedPromoDiscoveryRow` / S3 plan allowlist
-
-**Material contract mismatch:** none for the public widget surface. No stop condition triggered.
+**Material contract mismatch:** none for the public widget surface.
 
 ---
 
-## 5. Producer relation classification
+## 4. Producer relation classification
 
-| Relation | Current schema (post–Wave 2) | Wave 2 disposition | RLS enabled? | Site-role direct access today? | Intended DB-W3 direct access? |
+| Relation | Current schema | Wave 2 disposition | RLS enabled? | Site-role direct access | Intended DB-W3 direct access? |
 |---|---|---|---|---|---|
-| `published_curated_offer_instances_raw` | `publish` | moved; producer-only | yes (preserved on move) | **NO** (`USAGE`/`SELECT` revoked from `anon`/`authenticated`/`PUBLIC`) | **NO** |
+| `published_curated_offer_instances_raw` | `publish` | moved; producer-only | yes | **NO** | **NO** |
 | `published_curated_offer_signals_raw` | `publish` | moved; producer-only | yes | **NO** | **NO** |
 
-Related curated producers **not** referenced by this view (out of W3-A dependency set, deferred with event overlap):
+Related curated producers **not** referenced by this view (deferred with event overlap):
 
 - `publish.published_curated_offer_day`
 - `publish.published_curated_offer_event_days`
 - `publish.published_curated_offer_event_overlaps`
 
-### Privilege / execution observation (critical for W3-B)
+### Privilege / execution observation (design input for W3-B)
 
 ```text
 public.v_curated_promo_discovery
@@ -162,15 +134,34 @@ public.v_curated_promo_discovery
 ⇒ low-privilege invoker cannot satisfy base-table privilege checks
 ```
 
-Stage B smoke `count(*)` runs as migration/`postgres` context — it does **not** prove anon/site-role readability.
+This made continuing invoker-mode site reads incompatible with Wave 2 producer isolation — resolved later by the owner-rights `api` view (W3-B/C), not by granting `publish` to `anon`.
 
-Proposal DDL historically granted:
+---
 
-```sql
-grant select on public.v_curated_promo_discovery to service_role;
+## 5. Former public-view ACL (historical pre–W3-C)
+
+Live catalog evidence **before W3-C cleanup** showed broad legacy grants on `public.v_curated_promo_discovery` to:
+
+```text
+anon
+authenticated
+postgres
+service_role
 ```
 
-**Gap:** live grant matrix on the view for `anon` / `authenticated` / site identity was not re-probed in this packet. Even if `SELECT` on the view exists, `security_invoker=true` plus Wave 2 producer isolation implies low-privilege reads are not a viable long-term model without redesign.
+including:
+
+```text
+SELECT
+INSERT
+UPDATE
+DELETE
+TRUNCATE
+REFERENCES
+TRIGGER
+```
+
+This is **historical pre-W3-C evidence only**. It is **not** the current accepted ACL state. W3-C tightened `public.v_curated_promo_discovery` to **service_role SELECT compatibility only** (see W3-C evidence).
 
 ---
 
@@ -178,15 +169,15 @@ grant select on public.v_curated_promo_discovery to service_role;
 
 | Repo | Match | Classification |
 |---|---|---|
-| `jackpot-site` | types, mapper, fixtures, composed UI, JSE-S3 docs; **no live repository against DB yet** | TEST/FIXTURE + CURRENT DOC (+ presentation code awaiting S3-E/DB-W3) |
-| `rewards-maxxing-frontend` | `src/lib/server/curatedPromos.ts` reads `v_curated_promo_discovery` (default `public` schema) with explicit allowlist SELECT | **ACTIVE RUNTIME** |
+| `jackpot-site` | types, mapper, fixtures, composed UI, JSE-S3 docs; **no live repository against DB yet** | TEST/FIXTURE + CURRENT DOC (+ presentation awaiting S3-E / W3-E) |
+| `rewards-maxxing-frontend` | `src/lib/server/curatedPromos.ts` reads `v_curated_promo_discovery` (default `public`) with explicit allowlist SELECT | **ACTIVE RUNTIME** |
 | `rewards-maxxing-frontend` | mapper/types/fixtures/tests referencing the view | TEST/FIXTURE + CURRENT DOC |
-| `rewards-maxxing-frontend` | overlap path already uses `publish.published_curated_offer_event_overlaps` (separate from discovery view) | ACTIVE RUNTIME (overlap; out of DB-W3 scope) |
-| `core` | Stage B / operator smoke SQL selecting the view; Wave 0–2 governance docs | ACTIVE OPERATIONAL TOOL + CURRENT DOC |
+| `rewards-maxxing-frontend` | overlap path uses `publish.published_curated_offer_event_overlaps` | ACTIVE RUNTIME (overlap; out of DB-W3 scope) |
+| `core` | Stage B / operator smoke SQL; Wave 0–2 governance docs | ACTIVE OPERATIONAL TOOL + CURRENT DOC |
 | `jackpot-api-newsletter` | no references found | none |
 | `jackpot-news` | no references found | none |
 
-No undocumented critical consumer outside the legacy frontend + ops smoke path. ACTIVE RUNTIME on `rewards-maxxing-frontend` is expected and drives compatibility strategy A (retain public view until W3-F).
+ACTIVE RUNTIME on `rewards-maxxing-frontend` drives compatibility strategy A (retain public view until W3-F). After W3-C, anon can no longer SELECT that public view; service_role compatibility remains.
 
 ---
 
@@ -200,28 +191,29 @@ Confirmed **deferred** for initial DB-W3:
 
 ---
 
-## 8. Gaps / unknowns
+## 8. Gaps closed
 
-1. Exact live `pg_get_viewdef` text (capture required in W3-C preflight).
-2. Exact live column OID types via catalog (inferable; confirm in W3-C).
-3. Exact live `GRANT` ACL on `public.v_curated_promo_discovery` for anon/authenticated (confirm in W3-C/D).
-4. Whether any PostgREST client still successfully reads the public view as a low-privilege role after Wave 2 (operational; expected failure under invoker + publish isolation).
+Former inventory gaps are **closed** by operator live catalog queries:
 
-None of these block **design** of `api.*` (W3-B). They constrain W3-C apply/verification evidence.
+| Former gap | Resolution |
+|---|---|
+| live `pg_get_viewdef` / dependency graph | verified: instances + signals under `publish` only |
+| live column types | verified 26 columns; `promo_id`/`observation_id` = `text` |
+| live grant matrix on public view | verified broad legacy ACL (historical); post–W3-C state recorded in W3-C evidence |
 
 ---
 
 ## 9. Conclusion
 
 ```text
+COMPLETE
 READY FOR W3-B
 ```
 
 Reasons:
 
 - Wave 2 handoff gate satisfied on `jackpot-site/main`.
-- View identity, owner, `security_invoker=true`, and producer dependency pair are established.
-- JSE-S3 allowlist is a subset of the public view contract (no material mismatch).
-- Producer isolation after Wave 2 makes continuing `security_invoker=true` for site reads incompatible with low-privilege access — this is a design input for W3-B, not a W3-A blocker.
-- Event overlap remains explicitly deferred.
-- Active consumers are inventoried; compatibility retention of the public view is required until W3-F.
+- Live view identity, owner, `security_invoker=true`, and producer dependency pair are verified.
+- Exact live columns/types are verified; JSE-S3 allowlist is the 21-column subset.
+- Event overlap remains deferred.
+- Consumers inventoried; public-view retention until W3-F remains required for compatibility planning.

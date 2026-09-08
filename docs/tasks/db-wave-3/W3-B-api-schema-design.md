@@ -68,14 +68,15 @@ Record:
 
 - owner;
 - `security_invoker` choice;
+- `security_barrier` choice;
 - consequences for base-table privileges;
 - RLS interaction;
-- why the low-privilege identity does not gain unintended producer access;
-- an explicit answer to whether every row/allowlisted value reachable through the API view is public-safe for anonymous retrieval independent of application filters (e.g. `activeOnly`).
+- the database publication boundary: exact column projection **and** any row predicate (e.g. `active_status IN ('active','unknown')`);
+- why the low-privilege identity does not gain unintended producer access.
 
-If `security_invoker=true` would require direct base-table grants that weaken `publish.*` isolation, do not adopt it blindly. Design the contract/security model that preserves both low-privilege API reads and producer isolation.
+If `security_invoker=true` would require direct base-table grants that weaken `publish.*` isolation, do not adopt it blindly.
 
-When choosing owner-rights (`security_invoker=false`), document plainly that underlying `publish` RLS is intentionally bypassed for the API view and that the view definition is the public disclosure boundary.
+When choosing owner-rights (`security_invoker=false`), document plainly that underlying `publish` RLS is intentionally not relied upon to filter API rows, and that the API view (columns + predicate) is the public disclosure boundary. Application `activeOnly` filtering must not be treated as the sole disclosure control.
 
 ### 5. Privilege matrix
 
