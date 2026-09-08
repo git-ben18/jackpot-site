@@ -2,9 +2,9 @@
  * Low-privilege server Supabase client for public curated reads.
  * Reads only SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY (or explicit anon fallback).
  * Never reads service-role / secret credentials.
- *
- * Server-only by convention — import from Server Components / route handlers only.
  */
+import 'server-only'
+
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 export type PublicSupabaseConfigError = {

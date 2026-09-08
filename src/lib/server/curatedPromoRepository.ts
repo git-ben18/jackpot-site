@@ -2,9 +2,9 @@
  * Domain repository for curated promo discovery.
  * REIMPLEMENT (behavior reference only): rewards-maxxing-frontend curatedPromos.ts
  * Physical contract (DB-W3): api.v_curated_promo_discovery — not public.*, not publish.*.
- *
- * Server-only by convention — import from Server Components / route handlers only.
  */
+import 'server-only'
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { mapFixtureCuratedPromos } from '../__fixtures__/curatedPromoDiscoveryDto.fixtures'
@@ -22,6 +22,9 @@ export const CURATED_PROMO_DISCOVERY_SCHEMA = 'api'
 export const CURATED_PROMO_DISCOVERY_VIEW = 'v_curated_promo_discovery'
 export const CURATED_PROMO_DISCOVERY_DEFAULT_LIMIT = 50
 export const CURATED_PROMO_DISCOVERY_MAX_LIMIT = 100
+
+const QUERY_FAILED_PUBLIC_MESSAGE =
+  'Curated promo discovery is temporarily unavailable.'
 
 /** DB-W3 / JSE-S3 21-column allowlist — never select('*'). */
 export const CURATED_PROMO_DISCOVERY_SELECT = [
@@ -85,8 +88,11 @@ export function resolveCuratedPromoLimit(limit?: number): number {
   return Math.max(1, Math.min(CURATED_PROMO_DISCOVERY_MAX_LIMIT, Math.floor(limit)))
 }
 
-function defaultIsMockEnabled(): boolean {
-  return process.env.CURATED_PROMO_DISCOVERY_MOCK === '1'
+/** Opt-in fixtures; never active when NODE_ENV=production. */
+export function isCuratedPromoDiscoveryMockEnabled(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return env.NODE_ENV !== 'production' && env.CURATED_PROMO_DISCOVERY_MOCK === '1'
 }
 
 function defaultLoadMockPromos(limit: number): CuratedPromoDiscoveryDTO[] {
@@ -114,7 +120,7 @@ function mapRowsSafely(
 
 /**
  * Fetch curated promos for public discovery.
- * Opt-in mock: CURATED_PROMO_DISCOVERY_MOCK=1 (never a silent production fallback).
+ * Opt-in mock: CURATED_PROMO_DISCOVERY_MOCK=1 and non-production only.
  * Does not attach event overlaps. Does not use service-role.
  */
 export async function getCuratedPromos(
@@ -123,7 +129,7 @@ export async function getCuratedPromos(
 ): Promise<GetCuratedPromosResult> {
   const activeOnly = params?.activeOnly ?? true
   const limit = resolveCuratedPromoLimit(params?.limit)
-  const isMockEnabled = deps.isMockEnabled ?? defaultIsMockEnabled
+  const isMockEnabled = deps.isMockEnabled ?? (() => isCuratedPromoDiscoveryMockEnabled())
   const loadMockPromos = deps.loadMockPromos ?? defaultLoadMockPromos
   const logError = deps.logError ?? defaultLogError
   const getClient = deps.getClient ?? getPublicSupabaseClient
@@ -134,11 +140,11 @@ export async function getCuratedPromos(
 
   const clientOrError = getClient()
   if ('ok' in clientOrError && clientOrError.ok === false) {
-    logError(clientOrError.message)
+    logError('getCuratedPromos missing config', clientOrError.message)
     return {
       ok: false,
       reason: 'missing_config',
-      message: clientOrError.message,
+      message: QUERY_FAILED_PUBLIC_MESSAGE,
       promos: [],
     }
   }
@@ -164,7 +170,7 @@ export async function getCuratedPromos(
       return {
         ok: false,
         reason: 'query_failed',
-        message: error.message,
+        message: QUERY_FAILED_PUBLIC_MESSAGE,
         promos: [],
       }
     }
@@ -179,7 +185,7 @@ export async function getCuratedPromos(
     return {
       ok: false,
       reason: 'query_failed',
-      message: thrown instanceof Error ? thrown.message : 'unknown query error',
+      message: QUERY_FAILED_PUBLIC_MESSAGE,
       promos: [],
     }
   }

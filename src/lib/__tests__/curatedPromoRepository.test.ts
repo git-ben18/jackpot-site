@@ -12,6 +12,7 @@ import {
   CURATED_PROMO_DISCOVERY_SELECT,
   CURATED_PROMO_DISCOVERY_VIEW,
   getCuratedPromos,
+  isCuratedPromoDiscoveryMockEnabled,
   resolveCuratedPromoLimit,
 } from '../server/curatedPromoRepository'
 import { resolvePublicSupabaseConfig } from '../server/publicSupabase'
@@ -118,6 +119,7 @@ describe('getCuratedPromos', () => {
     assert.equal(result.ok, false)
     if (!result.ok) {
       assert.equal(result.reason, 'missing_config')
+      assert.equal(result.message, 'Curated promo discovery is temporarily unavailable.')
       assert.deepEqual(result.promos, [])
     }
   })
@@ -200,8 +202,35 @@ describe('getCuratedPromos', () => {
     assert.equal(result.ok, false)
     if (!result.ok) {
       assert.equal(result.reason, 'query_failed')
+      assert.equal(result.message, 'Curated promo discovery is temporarily unavailable.')
       assert.deepEqual(result.promos, [])
     }
+  })
+})
+
+describe('isCuratedPromoDiscoveryMockEnabled', () => {
+  it('requires explicit mock flag and non-production NODE_ENV', () => {
+    assert.equal(
+      isCuratedPromoDiscoveryMockEnabled({
+        NODE_ENV: 'development',
+        CURATED_PROMO_DISCOVERY_MOCK: '1',
+      }),
+      true,
+    )
+    assert.equal(
+      isCuratedPromoDiscoveryMockEnabled({
+        NODE_ENV: 'production',
+        CURATED_PROMO_DISCOVERY_MOCK: '1',
+      }),
+      false,
+    )
+    assert.equal(
+      isCuratedPromoDiscoveryMockEnabled({
+        NODE_ENV: 'development',
+        CURATED_PROMO_DISCOVERY_MOCK: '0',
+      }),
+      false,
+    )
   })
 })
 
@@ -231,7 +260,13 @@ describe('curatedPromoRepository source guardrails', () => {
     assert.equal(repoSource.includes('public.v_curated_promo_discovery'), false)
   })
 
-  it('keeps mock path opt-in via CURATED_PROMO_DISCOVERY_MOCK', () => {
+  it('imports server-only boundary', () => {
+    assert.match(repoSource, /^import 'server-only'/m)
+    assert.match(clientSource, /^import 'server-only'/m)
+  })
+
+  it('keeps mock path opt-in and production-disabled', () => {
     assert.match(repoSource, /CURATED_PROMO_DISCOVERY_MOCK === '1'/)
+    assert.match(repoSource, /NODE_ENV !== 'production'/)
   })
 })
