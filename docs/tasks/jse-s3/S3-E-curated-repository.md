@@ -15,7 +15,7 @@ Reimplement the curated public-read boundary as a domain-specific repository. Do
 
 ## Decisions to assume
 
-- **D-S3-04** — only `public.v_curated_promo_discovery` + selected-column allowlist
+- **D-S3-04** — only `api.v_curated_promo_discovery` + selected-column allowlist (DB-W3 supersedes the former `public.*` physical location)
 - **D-S3-05** — low-privilege identity only (`SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY`, with explicit anon compatibility fallback if needed). Never service-role/secret fallback
 - **D-S3-07** — domain repository, not unrestricted generic client exposure to app code
 - **D-S3-08** — mock/fixture path may exist for tests/dev; must never silently become production fallback
@@ -47,7 +47,7 @@ getCuratedPromos({ activeOnly: true, limit: 50 })
 1. Add `@supabase/supabase-js` and, if the server module needs it, explicit `server-only`.
 2. Implement low-privilege server client config reading only approved env names. Missing config must fail closed / return a structured safe error — never invent elevated credentials.
 3. Reject or ignore any attempt to configure service-role/secret keys for this path (do not read `SUPABASE_SERVICE_ROLE_KEY` even if present in the environment).
-4. Query only `public.v_curated_promo_discovery` with the explicit column allowlist from D-S3-04. No `select('*')`.
+4. Query only `api.v_curated_promo_discovery` via explicit `.schema('api')` with the selected-column allowlist from D-S3-04. No `select('*')`. No silent fallback to `public.v_curated_promo_discovery`.
 5. Enforce bounded `limit` (default and max).
 6. Map rows through the S3-B `curatedPromoDiscoveryMapper`.
 7. Do not attach event overlaps.
@@ -92,6 +92,8 @@ getCuratedPromos({ activeOnly: true, limit: 50 })
 ```text
 Implement only S3-E from docs/tasks/jse-s3/S3-E-curated-repository.md
 REIMPLEMENT a low-privilege curatedPromoRepository over
-public.v_curated_promo_discovery with explicit columns. Never copy
+api.v_curated_promo_discovery with explicit columns. Never copy
 artifact-queries or use service-role. No homepage live wiring yet.
 ```
+
+Status: [_status-S3-E.md](./_status-S3-E.md) · DB-W3 cutover: [W3-E-jackpot-site-cutover.md](../db-wave-3/W3-E-jackpot-site-cutover.md)

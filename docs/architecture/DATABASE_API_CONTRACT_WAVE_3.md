@@ -10,8 +10,8 @@
 | W3-B | **APPROVED** |
 | W3-C | **APPLIED AND VERIFIED** (core migration-history reconciliation required) |
 | W3-D | **ACCEPTED** |
-| W3-E | **NEXT** |
-| W3-F | pending |
+| W3-E | **COMPLETE** |
+| W3-F | **NEXT** |
 | W3-G | pending |
 
 This document defines the database-governance Wave 3 (`DB-W3`) contract for `jackpot-site`.
@@ -376,9 +376,9 @@ W3-C  APPLIED AND VERIFIED — Migration + privileges
   ↓
 W3-D  ACCEPTED — Low-privilege acceptance
   ↓
-W3-E  NEXT — jackpot-site cutover
+W3-E  COMPLETE — jackpot-site cutover
   ↓
-W3-F  pending — public contract retirement decision
+W3-F  NEXT — public contract retirement decision
   ↓
 W3-G  pending — evidence + closeout
 ```
@@ -423,9 +423,9 @@ DB-W3 is complete only when all are true:
 - [x] low-privilege `publish.*` reads are denied;
 - [x] unrelated legacy/internal reads were not introduced by `api`;
 - [x] PostgREST `api` routing is proven;
-- [ ] `jackpot-site` repository queries explicit `api` schema;
-- [ ] selected-column allowlist remains enforced in site repository;
-- [ ] tests/typecheck/build pass for cutover;
+- [x] `jackpot-site` repository queries explicit `api` schema;
+- [x] selected-column allowlist remains enforced in site repository;
+- [x] tests/typecheck/build pass for cutover;
 - [ ] `public.v_curated_promo_discovery` consumer sweep is complete;
 - [ ] retain/retire disposition for the old public view is recorded;
 - [ ] DB-W3 closeout evidence is committed.

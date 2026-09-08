@@ -7,8 +7,8 @@ W3-A  COMPLETE
 W3-B  APPROVED
 W3-C  APPLIED AND VERIFIED  (core migration-history reconciliation required)
 W3-D  ACCEPTED
-W3-E  NEXT
-W3-F  pending
+W3-E  COMPLETE
+W3-F  NEXT
 W3-G  pending
 ```
 
@@ -72,8 +72,8 @@ W3-A → W3-B → W3-C → W3-D → W3-E → W3-F → W3-G
 | W3-B | `W3-B-api-schema-design.md` | approve exact API schema/view/security design | **APPROVED** | jackpot-site docs |
 | W3-C | `W3-C-migration-and-privileges.md` | implement reviewed migration/config | **APPLIED AND VERIFIED** | core (+ live SQL Editor apply) |
 | W3-D | `W3-D-low-privilege-acceptance.md` | prove runtime privilege/PostgREST matrix | **ACCEPTED** | evidence + approved environment |
-| W3-E | `W3-E-jackpot-site-cutover.md` | update site repository to explicit `api` contract | **NEXT** | jackpot-site |
-| W3-F | `W3-F-public-contract-retirement.md` | inventory/decide old public-view disposition | pending | cross-repo + core |
+| W3-E | `W3-E-jackpot-site-cutover.md` | update site repository to explicit `api` contract | **COMPLETE** | jackpot-site |
+| W3-F | `W3-F-public-contract-retirement.md` | inventory/decide old public-view disposition | **NEXT** | cross-repo + core |
 | W3-G | `W3-G-closeout.md` | record final evidence and close Wave 3 | pending | jackpot-site docs |
 
 ## Global constraints

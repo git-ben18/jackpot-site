@@ -78,7 +78,7 @@ S3 owns:
 - display and taxonomy helpers required by the public UI;
 - curated promo carousel, filters, cards, detail sheet, evidence, signals, and empty state;
 - a new target-specific low-privilege curated promo repository;
-- server-side integration with `public.v_curated_promo_discovery`;
+- server-side integration with `api.v_curated_promo_discovery`;
 - deterministic loading / empty / error behavior;
 - bounded server-side caching / revalidation;
 - S3-specific provenance and acceptance evidence.
@@ -147,21 +147,28 @@ Target rule:
 
 Analytics failure must never become a promo discovery failure mode.
 
-### D-S3-04 — Public data contract is `public.v_curated_promo_discovery`
+### D-S3-04 — Public data contract is `api.v_curated_promo_discovery`
 
-S3 reads only the approved published/read-safe view:
+> **DB-W3 refresh:** the physical contract is `api.v_curated_promo_discovery`
+> (owner-rights view; `WHERE active_status IN ('active','unknown')`).
+> The former `public.v_curated_promo_discovery` location is retained only as a
+> compatibility object until W3-F and is **not** the site read path.
 
-`public.v_curated_promo_discovery`
+S3 reads only the approved published/read-safe API view:
+
+`api.v_curated_promo_discovery`
 
 Do not replace it with:
 
 - raw tables;
 - canonical tables;
+- `publish.*` producers;
 - artifact storage;
 - dashboard query infrastructure;
-- broad generic Supabase helpers.
+- broad generic Supabase helpers;
+- silent fallback to `public.v_curated_promo_discovery`.
 
-The target repository must preserve an explicit selected-column allowlist rather than `select('*')`.
+The target repository must preserve an explicit selected-column allowlist rather than `select('*')`, and must select the schema explicitly (`.schema('api')`).
 
 Initial selected-column contract:
 
@@ -219,7 +226,7 @@ S3 acceptance must verify actual database behavior for the low-privilege identit
 Required acceptance matrix:
 
 ```text
-SELECT public.v_curated_promo_discovery
+SELECT api.v_curated_promo_discovery
 → succeeds for intended published rows/columns
 
 INSERT / UPDATE / DELETE
@@ -249,7 +256,7 @@ curatedPromoRepository.ts
         ↓
 low-privilege server Supabase client
         ↓
-public.v_curated_promo_discovery
+api.v_curated_promo_discovery   (.schema('api'))
         ↓
 explicit selected-column allowlist
         ↓
@@ -488,7 +495,7 @@ Tasks:
 - add `@supabase/supabase-js` only at this point unless earlier work proves it is required sooner;
 - implement target low-privilege server client configuration;
 - implement domain-specific `curatedPromoRepository` / equivalent;
-- use only `public.v_curated_promo_discovery`;
+- use only `api.v_curated_promo_discovery` via `.schema('api')`;
 - preserve explicit selected columns;
 - enforce bounded `limit` behavior;
 - map rows through `curatedPromoDiscoveryMapper`;
@@ -531,7 +538,7 @@ Exit:
 Tasks:
 
 - name the current published-view DDL owner before writing SQL;
-- enumerate `public.v_curated_promo_discovery`, its producer relations, and any other object the S3-E low-privilege role can reach;
+- enumerate `api.v_curated_promo_discovery`, its producer relations, and any other object the S3-E low-privilege role can reach;
 - enable RLS and add explicit policies (or record why RLS is not the control) on reachable base tables that lack them;
 - revoke stray GRANTs; do not grant producer-table SELECT for convenience;
 - set/document `security_invoker` when the view-owner audit requires it;
@@ -563,7 +570,7 @@ Tasks:
 
 Exit:
 
-- homepage curated discovery renders from `public.v_curated_promo_discovery`;
+- homepage curated discovery renders from `api.v_curated_promo_discovery`;
 - safe empty/error states work;
 - no high-privilege website credential exists for this path;
 - no event/analytics/dashboard dependency has returned through integration.

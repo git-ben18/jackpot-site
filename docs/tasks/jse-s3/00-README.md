@@ -67,7 +67,7 @@ Agents may still implement S3-C and S3-D as separate commits/PRs if that keeps r
 2. Never introduce `SUPABASE_SERVICE_ROLE_KEY`, `getSupabaseAdminClient()`, `artifact-queries.ts`, or service-role fallback.
 3. Never restore `/api/subscribe`, `LandingDashboardClient`, Hottest Offers, dashboard/query surfaces, or full event-discovery UI.
 4. Initial S3 defers event overlaps (D-S3-02) and production analytics (D-S3-03).
-5. Read only `public.v_curated_promo_discovery` with the selected-column allowlist in D-S3-04.
+5. Read only `api.v_curated_promo_discovery` (`.schema('api')`) with the selected-column allowlist in D-S3-04.
 6. Do not silently serve mock/fixture data in production (D-S3-08).
 7. Do not pre-implement JSE-S4 newsletter BFF/OIDC or JSE-S5 consent analytics to unblock S3.
 8. Record provenance at adoption time (`docs/provenance/rewards-maxxing-frontend.md` and/or an S3 ledger created in S3-A).

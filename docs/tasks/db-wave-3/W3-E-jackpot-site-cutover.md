@@ -115,15 +115,17 @@ Preserve historical records where clearly marked historical; do not rewrite old 
 
 ## Acceptance checklist
 
-- [ ] application uses explicit `api` schema
-- [ ] approved view name used
-- [ ] explicit columns preserved
-- [ ] mapper boundary preserved
-- [ ] no service-role
-- [ ] no `publish.*` direct read
-- [ ] no silent public-view fallback unless explicitly approved
-- [ ] tests pass
-- [ ] typecheck passes
-- [ ] build passes
-- [ ] JSE-S3 current planning docs refreshed
-- [ ] ready for W3-F / subsequent S3-G
+- [x] application uses explicit `api` schema
+- [x] approved view name used
+- [x] explicit columns preserved
+- [x] mapper boundary preserved
+- [x] no service-role
+- [x] no `publish.*` direct read
+- [x] no silent public-view fallback unless explicitly approved
+- [x] tests pass
+- [x] typecheck passes
+- [x] build passes
+- [x] JSE-S3 current planning docs refreshed
+- [x] ready for W3-F / subsequent S3-G
+
+Status: [_status-W3-E.md](./_status-W3-E.md)
