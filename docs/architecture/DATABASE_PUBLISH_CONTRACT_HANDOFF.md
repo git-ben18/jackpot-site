@@ -2,7 +2,14 @@
 
 ## Status
 
-**Architecture dependency record — no runtime implementation**
+| Field | Value |
+|---|---|
+| Document role | Architecture dependency record — no runtime implementation |
+| Wave 2 | **COMPLETE** |
+| `publish.*` topology | **accepted** |
+| Producer relations | **11** migrated and verified |
+| `api.*` contract | **next governed step** (DB-W3) |
+| JSE-S3 live integration | **paused pending DB-W3** |
 
 This document records the database-governance result of Waves 1–2 that affects the future curated-discovery integration in `jackpot-site`.
 
@@ -19,6 +26,8 @@ The target architecture is being separated so `jackpot-site` does not accidental
 Wave 1 classifies the old offer/Bayesian/snapshot family as legacy compatibility state.
 
 Wave 2 selects a dedicated Supabase `publish.*` domain for greenfield serving projections produced by `core`.
+
+**Wave 2 outcome:** the `publish.*` topology is accepted, and **11 producer relations** have been migrated and verified. The next governed step is the deliberate `api.*` read contract (DB-W3). JSE-S3 live integration remains paused until that contract wave completes.
 
 ---
 
@@ -66,6 +75,8 @@ core Python sync writers
 Supabase publish.*
 ```
 
+**Wave 2 acceptance:** this `publish.*` producer topology is accepted. **11 producer relations** are migrated and verified under that topology.
+
 Confirmed writer-backed projections include the future equivalents of:
 
 ```text
@@ -102,7 +113,7 @@ public DTO / UI
 
 The future application-facing schema is expected to be evaluated as a dedicated `api.*` contract layer.
 
-The first likely contract remains curated promo discovery, but its final schema/object name must be accepted by the database-governance/API wave before S3 live integration resumes.
+**Next governed step (DB-W3):** accept the `api.*` / read-contract location and selected columns. The first likely contract remains curated promo discovery, but its final schema/object name must be accepted by that wave before S3 live integration resumes.
 
 ---
 
@@ -130,7 +141,7 @@ Therefore:
 
 - do **not** implement or broaden live S3 database access merely to satisfy the older physical `public` location;
 - keep the current low-privilege, selected-column, domain-repository, no-service-role invariants;
-- treat the final schema/object location of the curated discovery view as **pending the API-contract wave**;
+- treat the final schema/object location of the curated discovery view as **pending DB-W3 (`api.*` contract)**;
 - amend/refresh the S3 planning decision before live cutover once the database contract is approved.
 
 This is a tightening of storage/API separation, not permission to weaken JSE-S3 security requirements.
@@ -172,17 +183,25 @@ Event-overlap UI remains deferred under the existing S3 decision unless separate
 
 ## 8. S3 restart prerequisites
 
-Live curated discovery should remain paused until database governance can provide:
+### Wave 2 progress (complete)
 
 ```text
-1. accepted publish.* producer topology
-2. migrated/verified curated producer objects required by the contract
-3. accepted api/read contract location and selected columns
-4. low-privilege SELECT evidence
-5. INSERT / UPDATE / DELETE denial evidence
-6. evidence that producer/internal tables are not newly public to jackpot-site
-7. documented view execution / RLS / grant behavior
+[x] Wave 2 COMPLETE
+[x] publish.* topology accepted
+[x] 11 producer relations migrated and verified
 ```
+
+### Still required before live curated discovery (DB-W3+)
+
+```text
+[ ] accepted api/read contract location and selected columns (DB-W3 — next governed step)
+[ ] low-privilege SELECT evidence against that contract
+[ ] INSERT / UPDATE / DELETE denial evidence
+[ ] evidence that producer/internal tables are not newly public to jackpot-site
+[ ] documented view execution / RLS / grant behavior
+```
+
+**JSE-S3 live integration remains paused pending DB-W3.**
 
 At that point, update the authoritative S3 planning document and resume its live-integration acceptance work.
 
@@ -190,13 +209,13 @@ At that point, update the authoritative S3 planning document and resume its live
 
 ## 9. What `jackpot-site` should do now
 
-While publish-schema implementation is underway in `core`:
+While DB-W3 defines the `api.*` contract:
 
 ```text
 continue fixture/DTO/UI work only where already authorized
-keep live DB integration paused
+keep live DB integration paused pending DB-W3
 avoid adding service-role configuration
-avoid binding code to public.published_* storage tables
+avoid binding code to public.published_* or publish.* storage tables as the site API
 avoid copying legacy frontend Supabase helpers
 ```
 
@@ -210,4 +229,5 @@ No Supabase dependency was added.
 No credential/configuration changed.
 No JSE route boundary changed.
 No live database contract was accepted by this document alone.
+Wave 2 publish.* topology acceptance does not authorize S3 live integration.
 ```
