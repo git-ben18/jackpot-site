@@ -561,6 +561,8 @@ A whole-database RLS sweep of tables the site role cannot reach is a migration-r
 
 **Goal:** replace fixture-only proof with the production-shaped published data path while preserving safe visitor behavior.
 
+**Status (2026-09-08):** **Complete** — see `docs/tasks/jse-s3/_status-S3-G.md`. Homepage mounts hardened `CuratedPromoLandingSection` over `getCuratedPromos` / `api.v_curated_promo_discovery` with 300s `unstable_cache` + route `revalidate`.
+
 Tasks:
 
 - connect `CuratedPromoLandingSection` to the target repository;
