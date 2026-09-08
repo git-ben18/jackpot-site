@@ -100,7 +100,7 @@ No embedded `ORDER BY` / `LIMIT` in the view; consumers apply filters/limits in 
 
 | Column | Inferred type | In JSE-S3 allowlist? |
 |---|---|---|
-| `promo_id` | `uuid` / text-compatible | yes |
+| `promo_id` | `text` | yes |
 | `promo_slug` | `text` | yes |
 | `observation_id` | `uuid` | **no** (lineage) |
 | `brand` | `text` | yes |

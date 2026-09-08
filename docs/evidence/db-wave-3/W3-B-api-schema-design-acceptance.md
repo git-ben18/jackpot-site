@@ -32,7 +32,7 @@ Approve **only** the JSE-S3 public allowlist (no lineage columns):
 
 | Column | Type (contract) |
 |---|---|
-| `promo_id` | `uuid` (exposed as string in app DTOs) |
+| `promo_id` | `text` |
 | `promo_slug` | `text` |
 | `brand` | `text` |
 | `market_slug` | `text` |
