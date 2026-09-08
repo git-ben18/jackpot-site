@@ -123,11 +123,13 @@ If blocked, return to W3-B/C as appropriate. Do not work around a DB privilege f
 
 ## Acceptance checklist
 
-- [ ] explicit `api` routing succeeds
-- [ ] approved SELECT succeeds
-- [ ] explicit selected columns validated
-- [ ] writes denied
-- [ ] `publish.*` read denied
-- [ ] unrelated object exposure not introduced
-- [ ] evidence committed
-- [ ] conclusion `ACCEPTED`
+- [x] explicit `api` routing succeeds
+- [x] approved SELECT succeeds
+- [x] explicit selected columns validated
+- [x] writes denied
+- [x] `publish.*` read denied
+- [x] unrelated object exposure not introduced
+- [x] evidence committed
+- [x] conclusion `ACCEPTED`
+
+Status: [_status-W3-D.md](./_status-W3-D.md) · Evidence: [W3-D-low-privilege-acceptance.md](../../evidence/db-wave-3/W3-D-low-privilege-acceptance.md)
