@@ -34,6 +34,8 @@ Do **not** start S3-E before S3-D exits. Do **not** start S3-G before S3-F exits
 
 **S3-F-RLS** runs when S3-F (or an equivalent audit) finds missing/insufficient RLS, grants, or `security_invoker` on the public-read path. It is required before S3-F may conclude `accepted` unless S3-F already proved there is no gap (then mark S3-F-RLS `N/A`). DDL is applied only in the Supabase migration authority — never from this repository.
 
+**Current disposition (2026-09-08):** S3-F is [`ACCEPTED`](./_status-S3-F.md) by citing DB-W3-D + W3-E. S3-F-RLS is [`N/A`](./_status-S3-F-RLS.md) — original public-view invoker blocker resolved through DB-W3 (`api.v_curated_promo_discovery`). S3-G may proceed.
+
 Recommended PR grouping (from the plan):
 
 ```text
@@ -56,9 +58,9 @@ Agents may still implement S3-C and S3-D as separate commits/PRs if that keeps r
 | S3-C | [S3-C-leaf-presentation.md](./S3-C-leaf-presentation.md) | Leaf presentation | S3-B | Code |
 | S3-D | [S3-D-composed-hardened-presentation.md](./S3-D-composed-hardened-presentation.md) | Composed / hardened presentation | S3-C | Code |
 | S3-E | [S3-E-curated-repository.md](./S3-E-curated-repository.md) | Low-privilege repo | S3-D | Code + tests |
-| S3-F | [S3-F-db-privilege-acceptance.md](./S3-F-db-privilege-acceptance.md) | DB privilege evidence | S3-E | Evidence / spike |
-| S3-F-RLS | [S3-F-RLS-public-read-remediation.md](./S3-F-RLS-public-read-remediation.md) | Public-read RLS / grant remediation | S3-F `blocked` (or equivalent audit) | Evidence + authorized migration |
-| S3-G | [S3-G-live-homepage-integration.md](./S3-G-live-homepage-integration.md) | Live homepage | S3-F `accepted` | Code |
+| S3-F | [S3-F-db-privilege-acceptance.md](./S3-F-db-privilege-acceptance.md) | DB privilege evidence | S3-E | Evidence / spike — **ACCEPTED** |
+| S3-F-RLS | [S3-F-RLS-public-read-remediation.md](./S3-F-RLS-public-read-remediation.md) | Public-read RLS / grant remediation | S3-F `blocked` (or equivalent audit) | Evidence + authorized migration — **N/A (DB-W3)** |
+| S3-G | [S3-G-live-homepage-integration.md](./S3-G-live-homepage-integration.md) | Live homepage | S3-F `accepted` | Code — unblocked |
 | S3-H | [S3-H-evidence-closeout.md](./S3-H-evidence-closeout.md) | Closeout | S3-G | Docs / evidence |
 
 ## Global constraints (every task)

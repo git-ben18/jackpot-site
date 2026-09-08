@@ -8,10 +8,40 @@
 | Blocks | S3-F conclusion `accepted`; therefore S3-G |
 | Estimate | M |
 | PR grouping | Migration-authority PR(s). Handoff / evidence may land in `jackpot-site` as docs only. |
+| Status (2026-09-08) | **N/A — original S3-F blocker resolved through DB-W3** — see [`_status-S3-F-RLS.md`](./_status-S3-F-RLS.md) |
 
-## Goal
+## Disposition (current)
 
-Close **missing or insufficient RLS / grants / `security_invoker`** on the S3 public-read path so the low-privilege site identity can SELECT only `public.v_curated_promo_discovery` (approved columns) and cannot mutate or read producer/internal objects.
+```text
+S3-F-RLS
+N/A — original S3-F blocker resolved through DB-W3
+```
+
+S3-F-RLS was opened because the original public view could not
+simultaneously preserve publish isolation and serve anon under
+`security_invoker=true`.
+
+DB-W3 superseded that physical contract with
+`api.v_curated_promo_discovery` and independently proved the required
+D-S3-06 matrix.
+
+No additional S3-F-RLS migration is required.
+
+This packet remains **historically important**: it explains what would
+happen when S3-F finds a database-layer failure on the public-read path.
+Do **not** treat the remediation target below as current architecture —
+`public.v_curated_promo_discovery` is superseded. Current accepted
+contract: [`_status-S3-F.md`](./_status-S3-F.md).
+
+## Goal (historical packet purpose)
+
+Close **missing or insufficient RLS / grants / `security_invoker`** on the S3 public-read path so the low-privilege site identity can SELECT only the **approved published view** (approved columns) and cannot mutate or read producer/internal objects.
+
+> **Historical wording:** early drafts of this packet named
+> `public.v_curated_promo_discovery`. That is **no longer** the site
+> contract. If this packet is ever reopened after a regression, remediate
+> the **current** physical contract (`api.v_curated_promo_discovery` unless
+> a later architecture decision changes it).
 
 This is the named follow-up that S3-F already required when the database does not match D-S3-06. It is not permission to apply ad-hoc SQL from `jackpot-site`.
 
@@ -30,16 +60,16 @@ Before writing SQL:
 
 1. Name the **current** repo/process that already owns published-view DDL for this project.
 2. Do not start a third migration history.
-3. ADR-0003 still treats `core` as acquisition migration authority where that remains documented. `jackpot-etl/scripts/migrations/` already contains published curated/artifact/newsletter RLS (for example `curated_web_005_supabase_rls.sql`, `artifact_003b_curated_offer_selections_rls.sql`). **Confirm which of those is authoritative for `public.v_curated_promo_discovery` and its producer tables** — do not guess.
+3. ADR-0003 still treats `core` as acquisition migration authority where that remains documented. `jackpot-etl/scripts/migrations/` already contains published curated/artifact/newsletter RLS (for example `curated_web_005_supabase_rls.sql`, `artifact_003b_curated_offer_selections_rls.sql`). **Confirm which of those is authoritative for the current published view (`api.v_curated_promo_discovery` after DB-W3) and its producer tables** — do not guess.
 4. Apply ENABLE/POLICY/GRANT/`security_invoker` changes only in that owner, via its normal review/apply path.
 5. Never apply production DDL from `jackpot-site`.
 6. Never introduce `SUPABASE_SERVICE_ROLE_KEY` usage in `jackpot-site` to paper over missing RLS.
 
 ## Scope
 
-**In scope (S3 blocker):**
+**In scope (S3 blocker) — if this packet is reopened:**
 
-- `public.v_curated_promo_discovery` (owner, grants, `security_invoker`)
+- current published view (`api.v_curated_promo_discovery` after DB-W3; historically `public.v_curated_promo_discovery`) — owner, grants, `security_invoker` / `security_barrier`
 - producer tables/views that define that published view
 - any other table/view the S3-E low-privilege role can currently `SELECT` / `INSERT` / `UPDATE` / `DELETE` in the environment under test
 
@@ -109,15 +139,16 @@ If the audit finds unrelated public-schema tables missing RLS **and** they are n
 
 ## Acceptance checklist
 
-- [ ] Migration authority named (repo/process) before SQL is written
-- [ ] In-scope relations listed (view + producers + reachable objects)
-- [ ] Gaps recorded (missing RLS, policies, grants, `security_invoker`)
-- [ ] Authorized migration applied or explicitly N/A
-- [ ] D-S3-06 matrix re-run after apply
-- [ ] No producer-table SELECT granted for convenience
-- [ ] No service-role workaround in `jackpot-site`
-- [ ] `_status-S3-F-RLS.md` conclusion `remediated` or `N/A` (no gaps)
-- [ ] S3-F unblocked only when the matrix matches D-S3-06
+Disposition recorded 2026-09-08 — see [`_status-S3-F-RLS.md`](./_status-S3-F-RLS.md):
+
+- [x] Authorized migration applied or explicitly N/A → **N/A (DB-W3)**
+- [x] D-S3-06 matrix proven → via [DB-W3-D](../../evidence/db-wave-3/W3-D-low-privilege-acceptance.md)
+- [x] No producer-table SELECT granted for convenience
+- [x] No service-role workaround in `jackpot-site`
+- [x] `_status-S3-F-RLS.md` conclusion `N/A`
+- [x] S3-F unblocked — matrix matches D-S3-06 under `api.v_curated_promo_discovery`
+
+If this packet is reopened after a regression, reset the checklist and complete the full audit/migration path above.
 
 ## Agent prompt
 

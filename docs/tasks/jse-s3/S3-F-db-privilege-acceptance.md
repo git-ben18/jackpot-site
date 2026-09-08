@@ -9,12 +9,13 @@
 | If blocked for RLS/grants | [S3-F-RLS](./S3-F-RLS-public-read-remediation.md) |
 | Estimate | M |
 | PR grouping | PR 5 (with S3-G) |
+| Status (2026-09-08) | **ACCEPTED** — see [`_status-S3-F.md`](./_status-S3-F.md) |
 
 ## Goal
 
 Prove the public-read boundary is secure at the **database** layer for the low-privilege identity used by S3-E. Application code alone is not acceptance.
 
-> **DB-W3 note:** low-privilege PostgREST acceptance for `api.v_curated_promo_discovery` is already recorded in `docs/evidence/db-wave-3/W3-D-low-privilege-acceptance.md` (`ACCEPTED`). S3-F should cite that evidence and only reopen DB checks if the live contract drifts.
+> **DB-W3 note:** low-privilege PostgREST acceptance for `api.v_curated_promo_discovery` is already recorded in `docs/evidence/db-wave-3/W3-D-low-privilege-acceptance.md` (`ACCEPTED`). S3-F cites that evidence plus W3-E cutover; reopen DB checks only if the live contract drifts.
 
 ## Decisions to assume
 
@@ -88,16 +89,18 @@ raw / canonical producer tables
 
 ## Acceptance checklist
 
-- [ ] Evidence doc exists with date/environment/role class
-- [ ] SELECT success evidenced for approved view/columns
-- [ ] Mutation denial evidenced
-- [ ] Unrelated internal read denial evidenced
-- [ ] Producer-table exposure reviewed
-- [ ] View owner / security_invoker determination recorded
-- [ ] Explicit `accepted` or `blocked` conclusion
-- [ ] If DDL/grants must change: `blocked` with S3-F-RLS opened (no ad-hoc DDL from jackpot-site)
-- [ ] No service-role workaround introduced
-- [ ] S3-G unblocked only if conclusion is `accepted`
+Completed 2026-09-08 via DB-W3 reconciliation — see [`_status-S3-F.md`](./_status-S3-F.md) and [docs/evidence/jse-s3-db-privilege.md](../../evidence/jse-s3-db-privilege.md):
+
+- [x] Evidence doc exists with date/environment/role class
+- [x] SELECT success evidenced for approved view/columns
+- [x] Mutation denial evidenced
+- [x] Unrelated internal read denial evidenced
+- [x] Producer-table exposure reviewed
+- [x] View owner / security_invoker determination recorded
+- [x] Explicit `accepted` conclusion
+- [x] S3-F-RLS marked `N/A` (original blocker resolved through DB-W3)
+- [x] No service-role workaround introduced
+- [x] S3-G unblocked (`accepted`)
 
 ## Agent prompt
 
