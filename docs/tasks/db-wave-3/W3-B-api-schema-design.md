@@ -70,25 +70,38 @@ Record:
 - `security_invoker` choice;
 - consequences for base-table privileges;
 - RLS interaction;
-- why the low-privilege identity does not gain unintended producer access.
+- why the low-privilege identity does not gain unintended producer access;
+- an explicit answer to whether every row/allowlisted value reachable through the API view is public-safe for anonymous retrieval independent of application filters (e.g. `activeOnly`).
 
 If `security_invoker=true` would require direct base-table grants that weaken `publish.*` isolation, do not adopt it blindly. Design the contract/security model that preserves both low-privilege API reads and producer isolation.
+
+When choosing owner-rights (`security_invoker=false`), document plainly that underlying `publish` RLS is intentionally bypassed for the API view and that the view definition is the public disclosure boundary.
 
 ### 5. Privilege matrix
 
 Approve an explicit matrix for:
 
 ```text
-anon/publishable-compatible
+anon
 authenticated
 service_role
 postgres/owner
 ```
 
-At minimum:
+DB-W3 v1 freeze (accepted in evidence):
 
 ```text
-site identity:
+DB-W3 v1 site role = anon
+
+GRANT USAGE ON SCHEMA api TO anon;
+GRANT SELECT ON api.v_curated_promo_discovery TO anon;
+
+No new authenticated grant in DB-W3 v1.
+```
+
+At minimum for `anon`:
+
+```text
 USAGE api                   = yes
 SELECT api approved view    = yes
 INSERT/UPDATE/DELETE        = no

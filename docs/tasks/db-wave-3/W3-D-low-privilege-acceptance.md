@@ -14,7 +14,11 @@ Prove that the new API contract works for the intended low-privilege site identi
 
 ## Required identity
 
-Use the same low-privilege identity class intended for ordinary `jackpot-site` curated rendering.
+```text
+DB-W3 v1 site role = anon
+```
+
+Use the `anon` role (publishable-key equivalent) intended for ordinary `jackpot-site` curated rendering.
 
 Do not use service-role to prove the public contract.
 

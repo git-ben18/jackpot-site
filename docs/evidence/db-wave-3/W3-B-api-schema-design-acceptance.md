@@ -103,15 +103,49 @@ Do **not** drop or rename the public view in W3-C.
 | Property | Approved choice |
 |---|---|
 | Owner | `postgres` (same class as current public view) |
-| `security_invoker` | **`false`** (default / owner-rights for underlying relation access) |
-| Rationale | W3-A established `security_invoker=true` on the public view is incompatible with Wave 2 producer isolation for low-privilege site reads. Invoker mode would require granting `USAGE`/`SELECT` on `publish.*` to the site identity — **rejected**. |
-| RLS interaction | Base `publish` tables keep RLS enabled; site identity is **not** a table grantee. View owner (`postgres`) accesses underlying relations under owner-rights view semantics. Site identity only needs schema `USAGE` + view `SELECT` on `api`. |
+| `security_invoker` | **`false`** (owner-rights for underlying relation access) |
 | Mutations | No `INSERT`/`UPDATE`/`DELETE` grants on the API view |
+
+### Explicit public-safety decision (required before W3-C)
+
+Owner-rights (`postgres` + `security_invoker=false`) is approved only because the answer to this question is **yes**:
+
+```text
+Are every row and every allowlisted value produced by
+publish.published_curated_offer_instances_raw and
+publish.published_curated_offer_signals_raw
+(as projected by this API view definition)
+safe for anonymous public retrieval,
+independent of the application's activeOnly filtering?
+```
+
+**Decision: yes.** These producer tables are curated published serving projections. Rows and allowlisted columns reachable through `api.v_curated_promo_discovery` are classified **public-safe**. Application filters such as `activeOnly` are UX/product shaping, **not** a disclosure control.
+
+Therefore, plainly:
+
+```text
+Underlying publish RLS is intentionally bypassed for this API view.
+The API view itself is the public disclosure boundary.
+Every row reachable through its definition is classified public-safe.
+```
+
+| Consequence | Meaning |
+|---|---|
+| RLS on `publish.*` base tables | Remains enabled for direct-table access control; it is **not** the gate for `api` reads |
+| Owner-rights view execution | View owner (`postgres`) reads base relations without requiring `anon` table grants; base RLS does not filter the API result set |
+| Disclosure boundary | Column projection + view definition (which producers join/aggregate) — not RLS, not `activeOnly` |
+| Producer isolation preserved | `anon` still has **no** `USAGE`/`SELECT` on `publish.*`; only `api` is granted |
+
+If a future producer row class is **not** public-safe, do not rely on RLS under this model — change the view definition (or stop using owner-rights) before publishing that class through `api`.
+
+### Why not `security_invoker=true`
+
+W3-A established `security_invoker=true` on the public view is incompatible with Wave 2 producer isolation for low-privilege site reads. Invoker mode would require granting `USAGE`/`SELECT` on `publish.*` to `anon` — **rejected**.
 
 ### Rejected alternative
 
 ```text
-security_invoker=true + grant SELECT on publish producers to site identity
+security_invoker=true + grant SELECT on publish producers to anon
 ```
 
 Rejected because it weakens the Wave 2 producer boundary and contradicts DB-W3 / JSE-S3 invariants.
@@ -124,22 +158,37 @@ Ordinary curated rendering **must not** use `service_role`. Service-role may ret
 
 ## 7. Privilege matrix
 
+### Frozen DB-W3 v1 site role
+
+```text
+DB-W3 v1 site role = anon
+```
+
+Required grants (exact):
+
+```sql
+GRANT USAGE ON SCHEMA api TO anon;
+GRANT SELECT ON api.v_curated_promo_discovery TO anon;
+```
+
+**No new `authenticated` grant in DB-W3 v1.**
+
 | Identity | `USAGE api` | `SELECT api.v_curated_promo_discovery` | DML on `api` view | `USAGE publish` | `SELECT publish.*` |
 |---|---|---|---|---|---|
-| Site / anon-compatible low-privilege identity | **yes** | **yes** | **no** | **no** | **no** |
-| `authenticated` | only if a later product decision requires it; **default no new grants** | default no | no | no | no |
+| **`anon`** (DB-W3 v1 site role) | **yes** | **yes** | **no** | **no** | **no** |
+| `authenticated` | **no** (v1) | **no** (v1) | no | no | no |
 | `service_role` | yes (admin) | yes (admin) | no (reads only for this contract) | as already granted for producers | as already granted |
 | `postgres` / owner | yes | yes | N/A (DDL authority) | yes | yes |
 
 Invariant summary:
 
 ```text
-site → SELECT api.v_curated_promo_discovery     = succeed (approved rows)
-site → INSERT/UPDATE/DELETE api.*                = deny
-site → SELECT publish.*                        = deny
-site → service_role for ordinary promo reads   = forbid by architecture
+anon → SELECT api.v_curated_promo_discovery     = succeed (all rows the view returns)
+anon → INSERT/UPDATE/DELETE api.*                = deny
+anon → SELECT publish.*                        = deny
+anon → service_role for ordinary promo reads   = forbid by architecture
+authenticated → no new api grants in DB-W3 v1
 ```
-
 ---
 
 ## 8. PostgREST / Data API exposure
@@ -156,15 +205,16 @@ PostgREST schema cache reload after migration
 Verification expectations (W3-D):
 
 1. Explicit schema selection reaches PostgreSQL (`Accept-Profile: api` / supabase-js `.schema('api')`).
-2. Low-privilege `SELECT` on `api.v_curated_promo_discovery` succeeds.
-3. Low-privilege attempts against `publish.*` continue to fail.
-4. Unrelated legacy/internal objects are not newly exposed by adding `api`.
+2. **`anon`** `SELECT` on `api.v_curated_promo_discovery` succeeds.
+3. **`anon`** attempts against `publish.*` continue to fail.
+4. **`authenticated`** has no new DB-W3 v1 grants on `api` (confirm absence).
+5. Unrelated legacy/internal objects are not newly exposed by adding `api`.
 
 ---
 
 ## 9. Site query contract
 
-Target application shape (server-side, low-privilege client only):
+Target application shape (server-side client authenticated as **`anon`** / publishable key equivalent):
 
 ```ts
 client
@@ -215,9 +265,12 @@ column contract:   JSE-S3 allowlist only (§3)
 dependency design: adapted aggregation over publish instances + signals
 compatibility:     A — retain public view
 owner:             postgres
-view security:     security_invoker=false (owner-rights for base access)
-schema grants:     USAGE api for site identity
-relation grants:   SELECT on api view only for site identity
+view security:     security_invoker=false (owner-rights; publish RLS bypassed for this view)
+disclosure:        API view is the public boundary; all reachable rows public-safe
+site role (v1):    anon
+schema grants:     GRANT USAGE ON SCHEMA api TO anon
+relation grants:   GRANT SELECT ON api.v_curated_promo_discovery TO anon
+authenticated:     no new grants in DB-W3 v1
 PostgREST:         expose api; explicit .schema('api')
 rollback:          §10
 ```

@@ -176,30 +176,35 @@ Do not grant `jackpot-site` direct SELECT on producer tables for convenience.
 
 ## 6. Schema and privilege model
 
-Target posture:
+Target posture (DB-W3 v1, as accepted in W3-B):
 
 | Identity / role class | `publish.*` | `api.*` |
 |---|---:|---:|
-| low-privilege site identity | NO | SELECT approved views only |
-| authenticated | NO by default | only if a defined product use case requires it |
-| service_role | internal/admin as required | allowed as administrative capability |
+| **`anon`** (frozen v1 site role) | NO | `USAGE` schema + `SELECT` approved views only |
+| `authenticated` | NO | **no new grants in DB-W3 v1** |
+| `service_role` | internal/admin as required | allowed as administrative capability |
 | producer writers | approved producer DML | no application dependency |
 
-The exact Supabase role used by the public site may be the project publishable/anon-compatible low-privilege class already defined by JSE-S3.
+Frozen grants:
+
+```sql
+GRANT USAGE ON SCHEMA api TO anon;
+GRANT SELECT ON api.v_curated_promo_discovery TO anon;
+```
 
 Wave 3 must prove behavior, not merely document intended grants.
 
 Required invariants:
 
 ```text
-SELECT api.v_curated_promo_discovery
-→ succeeds for intended public rows
+anon SELECT api.v_curated_promo_discovery
+→ succeeds for all rows the view returns
 
 INSERT / UPDATE / DELETE api contract
-→ denied
+→ denied for anon
 
 SELECT publish.*
-→ denied for site identity
+→ denied for anon
 
 SELECT unrelated legacy/internal tables
 → not newly enabled by Wave 3
@@ -234,21 +239,26 @@ The exact Supabase-js implementation may vary, but schema selection must be expl
 
 ## 8. View execution / RLS / grants
 
-W3-B must determine the correct execution posture for the API view.
+W3-B accepted posture (see evidence):
 
-The design review must record:
+```text
+owner = postgres
+security_invoker = false
+```
 
-- view owner;
-- view definition;
-- `security_invoker` applicability/current setting;
-- grants on the view;
-- RLS state/policies on reachable base tables;
-- whether the low-privilege role requires direct base-table privileges under the chosen view behavior;
-- why the resulting design does not expose producer state.
+Explicit public-safety decision:
 
-Do not solve view access by broadly granting producer-table SELECT.
+```text
+Underlying publish RLS is intentionally bypassed for this API view.
+The API view itself is the public disclosure boundary.
+Every row reachable through its definition is classified public-safe.
+```
 
-If the chosen `security_invoker` model requires low-privilege base-table access that conflicts with producer isolation, stop and revise the view/security design rather than weakening the producer boundary.
+Application filters such as `activeOnly` are not disclosure controls.
+
+Do not solve view access by broadly granting producer-table SELECT to `anon`.
+
+If a future row class is not public-safe under owner-rights, revise the view definition (or abandon owner-rights) before exposing it through `api`.
 
 ---
 
