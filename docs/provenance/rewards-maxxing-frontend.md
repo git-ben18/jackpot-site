@@ -88,6 +88,10 @@ JSE-003 identifies the source families expected to seed curated-discovery work, 
 
 The exact implementation ledger is `docs/provenance/jse-s3-ledger.md`. S3-B adopted public DTO / mapper / helpers / fixtures / tests at source `466bfb0`. S3-C adopted leaf presentation (EmptyState, EvidenceBlock, SignalList) plus minimal Tailwind tooling. Composed UI and live data access remain pending.
 
+## JSE-S4 (newsletter acquisition) — provisional local reimplementation
+
+S4 runtime newsletter DOI UI begins in `docs/provenance/jse-s4-ledger.md`. At S4-A/B execution time, `rewards-maxxing-frontend` was not readable from the Cloud Agent environment, so expected COPY+HARDEN artifacts (`DoiNewsletterSignupForm`, `subscribe-client`) were **REIMPLEMENTed** against the frozen S4 contract seam rather than copied from `466bfb0`. Reconcile against source when access is restored.
+
 ## Explicit non-provenance
 
 The following source surfaces are not implementation inputs merely because they exist in the source application:
