@@ -73,15 +73,19 @@ Mount curated discovery on `/`. Do not restore dashboard banner/`isSupabaseConfi
 
 ## Acceptance checklist
 
-- [ ] S3-F was `accepted` before merge intent
-- [ ] Homepage renders curated discovery from `api.v_curated_promo_discovery`
-- [ ] Empty and error states are visitor-safe
-- [ ] No silent production mock fallback
-- [ ] No high-privilege credential used
-- [ ] No tracker/event/dashboard dependency regression
-- [ ] Cache/revalidation documented
-- [ ] `npm run typecheck` and `npm run build` succeed
-- [ ] Provenance updated
+Completed 2026-09-08 — see [`_status-S3-G.md`](./_status-S3-G.md):
+
+- [x] S3-F was `accepted` before merge intent
+- [x] Homepage renders curated discovery from `api.v_curated_promo_discovery`
+- [x] Empty and error states are visitor-safe
+- [x] No silent production mock fallback
+- [x] No high-privilege credential used
+- [x] No tracker/event/dashboard dependency regression
+- [x] Cache/revalidation documented
+- [x] `npm run typecheck` and `npm run build` succeed
+- [x] Provenance updated
+
+Status: [_status-S3-G.md](./_status-S3-G.md)
 
 ## Agent prompt
 

@@ -60,7 +60,7 @@ Agents may still implement S3-C and S3-D as separate commits/PRs if that keeps r
 | S3-E | [S3-E-curated-repository.md](./S3-E-curated-repository.md) | Low-privilege repo | S3-D | Code + tests |
 | S3-F | [S3-F-db-privilege-acceptance.md](./S3-F-db-privilege-acceptance.md) | DB privilege evidence | S3-E | Evidence / spike — **ACCEPTED** |
 | S3-F-RLS | [S3-F-RLS-public-read-remediation.md](./S3-F-RLS-public-read-remediation.md) | Public-read RLS / grant remediation | S3-F `blocked` (or equivalent audit) | Evidence + authorized migration — **N/A (DB-W3)** |
-| S3-G | [S3-G-live-homepage-integration.md](./S3-G-live-homepage-integration.md) | Live homepage | S3-F `accepted` | Code — unblocked |
+| S3-G | [S3-G-live-homepage-integration.md](./S3-G-live-homepage-integration.md) | Live homepage | S3-F `accepted` | Code — **complete** ([`_status-S3-G.md`](./_status-S3-G.md)) |
 | S3-H | [S3-H-evidence-closeout.md](./S3-H-evidence-closeout.md) | Closeout | S3-G | Docs / evidence |
 
 ## Global constraints (every task)
