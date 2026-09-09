@@ -88,6 +88,12 @@ JSE-003 identifies the source families expected to seed curated-discovery work, 
 
 The exact implementation ledger is `docs/provenance/jse-s3-ledger.md`. S3-B adopted public DTO / mapper / helpers / fixtures / tests at source `466bfb0`. S3-C adopted leaf presentation (EmptyState, EvidenceBlock, SignalList) plus minimal Tailwind tooling. Composed UI and live data access remain pending.
 
+## JSE-S4 (newsletter acquisition) — freeze only
+
+S4-A recorded inspected upstream SHAs and the verified BFF/service matrix. No S4 runtime files have been adopted yet.
+
+See `docs/provenance/jse-s4-ledger.md` and `docs/tasks/jse-s4/_status-S4-A.md`.
+
 ## Explicit non-provenance
 
 The following source surfaces are not implementation inputs merely because they exist in the source application:
