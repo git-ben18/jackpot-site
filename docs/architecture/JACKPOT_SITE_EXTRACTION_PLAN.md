@@ -585,6 +585,8 @@ Exit: curated discovery renders from published/read-safe data and fails safely w
 
 Exit: target contains one newsletter acquisition path and one canonical downstream subscriber authority.
 
+**Target progress (2026-09-10):** JSE-S4 is **IMPLEMENTATION COMPLETE** locally (S4-A…H). Same-origin BFF, DOI UI, confirmation UX, caller-side workload identity, and local integration are in-repo. This is not hosted OIDC, SendGrid, public DOI, or production-authority acceptance. Evidence: `docs/tasks/jse-s4/_status-S4-H.md`.
+
 ### JSE-S5 — Public shell, privacy, and analytics
 
 - finish target nav/footer;

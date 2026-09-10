@@ -2,7 +2,7 @@
 
 ## Status
 
-Active target implementation boundary. JSE-S2 is **merged/complete** at `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. Docs bootstrap remains `main@95b8348`. JSE-S3 implementation starts from that S2 baseline (current `main` descendant `eb154a7` adds the S3 planning document only).
+Active target implementation boundary. JSE-S2 is **merged/complete** at `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. JSE-S4 newsletter acquisition is **IMPLEMENTATION COMPLETE** locally (`docs/tasks/jse-s4/_status-S4-H.md`); it is not hosted-accepted and does not transfer production public-site or newsletter-workload authority. S3-G/S3-H live-homepage closeout remains a recorded gap (see `_status-S4-A.md`).
 
 ## Purpose
 

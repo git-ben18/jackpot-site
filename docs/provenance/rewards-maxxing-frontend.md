@@ -88,11 +88,13 @@ JSE-003 identifies the source families expected to seed curated-discovery work, 
 
 The exact implementation ledger is `docs/provenance/jse-s3-ledger.md`. S3-B adopted public DTO / mapper / helpers / fixtures / tests at source `466bfb0`. S3-C adopted leaf presentation (EmptyState, EvidenceBlock, SignalList) plus minimal Tailwind tooling. Composed UI and live data access remain pending.
 
-## JSE-S4 (newsletter acquisition) — freeze only
+## JSE-S4 (newsletter acquisition) — implementation complete, not hosted
 
-S4-A recorded inspected upstream SHAs and the verified BFF/service matrix. S4-C reimplemented the same-origin BFF on that freeze (see `docs/tasks/jse-s4/_status-S4-C.md`). Newsletter UI (S4-B) is not yet adopted.
+S4-A froze inspected upstream SHAs and the verified BFF/service matrix. S4-B through S4-G implemented DOI UI, same-origin BFF, caller-side workload identity, confirmation UX, security guardrails, and local integration. S4-H closed the slice as **IMPLEMENTATION COMPLETE**.
 
-See `docs/provenance/jse-s4-ledger.md` and `docs/tasks/jse-s4/_status-S4-A.md`.
+This is **not** hosted OIDC acceptance, public DOI enablement, or production-authority transfer.
+
+See `docs/tasks/jse-s4/_status-S4-H.md`, `docs/provenance/jse-s4-ledger.md`, and `docs/tasks/jse-s4/_status-S4-A.md`.
 
 ## Explicit non-provenance
 
