@@ -6,7 +6,7 @@
 | Packet | [S4-E-confirmation-ux.md](./S4-E-confirmation-ux.md) |
 | Result | Complete (local UX; no hosted confirmation mutation) |
 | Base | `feat/jse-s4-d-workload-identity@ca40a3b` (includes S4-C BFF + S4-D identity) |
-| Tip | `feat/jse-s4-e-confirmation-ux@PENDING` |
+| Tip | `feat/jse-s4-e-confirmation-ux@5f38367e4aeee285c3f01599bf24bb3659c3447c` |
 | Source SHA | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
 
 ## Runtime artifacts
@@ -47,12 +47,17 @@ src/lib/__tests__/newsletter-confirm-ux.test.ts
 - [x] Focused confirmation tests pass
 - [x] No deployment or real confirmation mutation performed
 
-## Local verification
+## Local verification (tip)
+
+| Field | Value |
+|---|---|
+| Date | 2026-09-10 |
+| SHA | `5f38367e4aeee285c3f01599bf24bb3659c3447c` (`5f38367`) |
+| Branch | `feat/jse-s4-e-confirmation-ux` |
+| Subject | `Refine S4-E confirmation retry, token hygiene, and tests.` |
 
 | Command | Result |
 |---|---|
 | `npm test` | **PASS** — 118 tests, 0 fail |
 | `npm run typecheck` | **PASS** |
-| `npm run build` | **PASS** |
-
-Final tip SHA recorded after commit below.
+| `npm run build` | **PASS** — Next.js 15.5.25; `/newsletter/confirm` present |
