@@ -190,18 +190,22 @@ The future Hosted Acceptance layer will reuse S4-G scenarios against restricted 
 
 ## Acceptance checklist
 
-- [ ] Full DOI request path passes controlled local integration.
-- [ ] Subscribe remains non-enumerating across fixture variants.
-- [ ] Full confirmation validate/consume path passes controlled local integration.
-- [ ] Workload identity failure prevents protected downstream mutation.
-- [ ] All required dependency/error scenarios fail safely.
-- [ ] No legacy writer/fallback is reachable.
-- [ ] No browser direct-service path exists.
-- [ ] No server-secret/client boundary regression exists.
-- [ ] Tests/typecheck/build pass using authoritative repo commands.
-- [ ] Exact tested SHA and evidence are recorded.
-- [ ] S4-G concludes `accepted` before S4-H.
-- [ ] No hosted/public deployment is performed or implied.
+Completed 2026-09-10 — see [`_status-S4-G.md`](./_status-S4-G.md):
+
+- [x] Full DOI request path passes controlled local integration.
+- [x] Subscribe remains non-enumerating across fixture variants.
+- [x] Full confirmation validate/consume path passes controlled local integration.
+- [x] Workload identity failure prevents protected downstream mutation.
+- [x] All required dependency/error scenarios fail safely.
+- [x] No legacy writer/fallback is reachable.
+- [x] No browser direct-service path exists.
+- [x] No server-secret/client boundary regression exists.
+- [x] Tests/typecheck/build pass using authoritative repo commands.
+- [x] Exact tested SHA and evidence are recorded.
+- [x] S4-G concludes `accepted` before S4-H.
+- [x] No hosted/public deployment is performed or implied.
+
+Status: [_status-S4-G.md](./_status-S4-G.md)
 
 ## Agent prompt
 
