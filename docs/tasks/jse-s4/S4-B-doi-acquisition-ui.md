@@ -120,16 +120,20 @@ Prefer behavior tests over snapshots for security/contract behavior.
 
 ## Acceptance checklist
 
-- [ ] Hero is reimplemented from the allowlisted source/product intent.
-- [ ] DOI form is hardened and uses same-origin submission only.
-- [ ] Required consent and age evidence are represented exactly as product authority requires.
-- [ ] Generic/non-enumerating success UX is preserved.
-- [ ] No legacy fallback writer or `/api/subscribe` path exists.
-- [ ] No direct browser→newsletter-service request exists.
-- [ ] No legacy access/reward-token or signup-cookie/localStorage behavior is introduced.
-- [ ] Kill-switch/unavailable behavior is implemented without fallback persistence.
-- [ ] Focused UI/client tests pass.
-- [ ] No hosted deployment or real mutation required/performed.
+Completed 2026-09-10 — see [`_status-S4-B.md`](./_status-S4-B.md):
+
+- [x] Hero is reimplemented from the allowlisted source/product intent.
+- [x] DOI form is hardened and uses same-origin submission only.
+- [x] Required consent and age evidence are represented exactly as product authority requires.
+- [x] Generic/non-enumerating success UX is preserved.
+- [x] No legacy fallback writer or `/api/subscribe` path exists.
+- [x] No direct browser→newsletter-service request exists.
+- [x] No legacy access/reward-token or signup-cookie/localStorage behavior is introduced.
+- [x] Kill-switch/unavailable behavior is implemented without fallback persistence.
+- [x] Focused UI/client tests pass.
+- [x] No hosted deployment or real mutation required/performed.
+
+Status: [_status-S4-B.md](./_status-S4-B.md)
 
 ## Agent prompt
 
