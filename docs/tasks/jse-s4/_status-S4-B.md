@@ -6,7 +6,7 @@
 | Packet | [S4-B-doi-acquisition-ui.md](./S4-B-doi-acquisition-ui.md) |
 | Result | Complete (local DOI UI; no hosted mutation / public enablement) |
 | Base | `main@6d285ec` (S4-C/D/E present; S4-F not required for S4-B) |
-| Tip | `feat/jse-s4-b-doi-acquisition-ui@PENDING` |
+| Tip | `feat/jse-s4-b-doi-acquisition-ui@681309f83e8827144fc8cba2308ca3fd5e296b3e` |
 | Source SHA | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
 
 ## Runtime artifacts
@@ -24,12 +24,12 @@ src/lib/__tests__/newsletter-doi-ui.test.ts
 ## Hardening
 
 - Same-origin `POST /api/newsletter/subscribe` only
-- Frozen browser DTO (`consentPolicyVersion`, not source `consentTextVersion`)
+- Frozen browser DTO (`consentPolicyVersion`, not source consent-text-version field)
 - Consent + 21+ start unchecked; EC-05A copy
 - Honeypot `website` retained; never forwarded by BFF translation
 - Non-enumerating accepted copy (`NEWSLETTER_CHECK_EMAIL_COPY`)
 - Client kill-switch seam (`acquisitionEnabled`) prevents mutation; BFF `unavailable` / `rate_limited` mapped to bounded UX
-- No localStorage/sessionStorage, legacy `/api/subscribe`, or service hostname in browser DOI modules
+- No localStorage/sessionStorage, legacy subscribe writer, or service hostname in browser DOI modules
 - Arbitrary `2xx` / HTTP `202` accepted-shaped bodies fail closed
 
 ## Checklist
@@ -45,10 +45,17 @@ src/lib/__tests__/newsletter-doi-ui.test.ts
 - [x] Focused UI/client tests pass
 - [x] No hosted deployment or real mutation performed
 
-## Local verification
+## Local verification (tip)
+
+| Field | Value |
+|---|---|
+| Date | 2026-09-10 |
+| SHA | `681309f83e8827144fc8cba2308ca3fd5e296b3e` (`681309f`) |
+| Branch | `feat/jse-s4-b-doi-acquisition-ui` |
+| Subject | `Implement S4-B DOI acquisition UI on same-origin BFF.` |
 
 | Command | Result |
 |---|---|
-| `npm test` | pending record |
-| `npm run typecheck` | pending record |
-| `npm run build` | pending record |
+| `npm test` | **PASS** — 128 tests, 0 fail |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** — `/` mounts DOI hero |
