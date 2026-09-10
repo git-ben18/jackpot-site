@@ -83,14 +83,18 @@ function walkFiles(dir: string, out: string[] = []): string[] {
 }
 
 describe('S4-F acquisition kill switch', () => {
-  it('treats false-like and unknown env values as disabled (fail closed)', () => {
-    assert.equal(isNewsletterAcquisitionEnabled({}), true)
+  it('requires explicit true-like enablement; unset/empty/unknown fail closed', () => {
+    assert.equal(isNewsletterAcquisitionEnabled({}), false)
     assert.equal(
       isNewsletterAcquisitionEnabled({ NEWSLETTER_ACQUISITION_ENABLED: '' }),
-      true,
+      false,
     )
     assert.equal(
       isNewsletterAcquisitionEnabled({ NEWSLETTER_ACQUISITION_ENABLED: '1' }),
+      true,
+    )
+    assert.equal(
+      isNewsletterAcquisitionEnabled({ NEWSLETTER_ACQUISITION_ENABLED: 'true' }),
       true,
     )
     assert.equal(
@@ -243,8 +247,14 @@ describe('S4-F response and credential boundaries', () => {
       'lib/newsletter/confirm-client.ts',
       'lib/newsletter/newsletter-confirm-controller.ts',
       'lib/newsletter/newsletter-confirm-copy.ts',
+      'lib/newsletter/subscribe-client.ts',
+      'lib/newsletter/newsletter-subscribe-controller.ts',
+      'lib/newsletter/doi-copy.ts',
       'components/newsletter/NewsletterConfirmClient.tsx',
+      'components/newsletter/DoiNewsletterSignupForm.tsx',
+      'components/InlineNewsletterHero.tsx',
       'app/newsletter/confirm/page.tsx',
+      'app/page.tsx',
     ]
     const serverOnlyModules = [
       'newsletter-bff',
@@ -268,6 +278,18 @@ describe('S4-F response and credential boundaries', () => {
       assert.equal(source.includes('SUPABASE_SERVICE_ROLE_KEY'), false)
     }
   })
+
+  it('does not treat scaffold /privacy as approved ACQ-05 privacy URL/version', () => {
+    const form = readFileSync(
+      join(srcRoot, 'components/newsletter/DoiNewsletterSignupForm.tsx'),
+      'utf8',
+    )
+    const copy = readFileSync(join(srcRoot, 'lib/newsletter/doi-copy.ts'), 'utf8')
+    assert.equal(form.includes('href="/privacy"'), false)
+    assert.equal(form.includes("href='/privacy'"), false)
+    assert.equal(form.includes('/privacy'), false)
+    assert.match(copy, /Privacy Policy/)
+  })
 })
 
 describe('S4-F active-runtime forbidden pattern search', () => {
@@ -278,6 +300,7 @@ describe('S4-F active-runtime forbidden pattern search', () => {
       'getSupabaseAdminClient',
       'SUPABASE_SERVICE_ROLE_KEY',
       'reward_access_token',
+      'access_token',
       'subscriber_email_hash',
       'NEXT_PUBLIC_NEWSLETTER',
       'NEXT_PUBLIC_NEWSLETTER_SERVICE',
@@ -313,8 +336,13 @@ describe('S4-F active-runtime forbidden pattern search', () => {
   it('keeps newsletter service hostname out of browser confirmation/UI code', () => {
     const files = [
       'components/newsletter/NewsletterConfirmClient.tsx',
+      'components/newsletter/DoiNewsletterSignupForm.tsx',
+      'components/InlineNewsletterHero.tsx',
       'lib/newsletter/confirm-client.ts',
       'lib/newsletter/newsletter-confirm-controller.ts',
+      'lib/newsletter/subscribe-client.ts',
+      'lib/newsletter/newsletter-subscribe-controller.ts',
+      'lib/newsletter/doi-copy.ts',
       'app/newsletter/confirm/page.tsx',
       'app/page.tsx',
     ]

@@ -75,6 +75,9 @@ function recordingTransport(
   }
 }
 
+/** Explicit enablement — env unset must not silently allow mutation. */
+const acquisitionOn = { isAcquisitionEnabled: () => true } as const
+
 describe('parseBrowserSubscribeBody', () => {
   it('rejects extra unapproved fields', () => {
     const parsed = parseBrowserSubscribeBody({
@@ -155,6 +158,7 @@ describe('handleSubscribePost', () => {
     const transport = recordingTransport()
     const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
       transport,
+      ...acquisitionOn,
     })
     assert.equal(response.status, 200)
     const json = await response.json()
@@ -167,7 +171,7 @@ describe('handleSubscribePost', () => {
     const transport = recordingTransport()
     const response = await handleSubscribePost(
       jsonRequest({ ...validSubscribeBody(), website: 'http://spam.example' }),
-      { transport },
+      { transport, ...acquisitionOn },
     )
     assert.equal(response.status, 200)
     assert.deepEqual(await response.json(), { status: 'accepted' })
@@ -181,6 +185,7 @@ describe('handleSubscribePost', () => {
     })
     const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
       transport,
+      ...acquisitionOn,
     })
     assert.equal(response.status, 429)
     const json = await response.json()
@@ -195,6 +200,7 @@ describe('handleSubscribePost', () => {
     })
     const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
       transport,
+      ...acquisitionOn,
     })
     assert.equal(response.status, 503)
     assert.deepEqual(await response.json(), { status: 'unavailable' })
@@ -207,6 +213,7 @@ describe('handleSubscribePost', () => {
     })
     const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
       transport,
+      ...acquisitionOn,
     })
     assert.equal(response.status, 503)
     assert.deepEqual(await response.json(), { status: 'unavailable' })
@@ -230,7 +237,7 @@ describe('confirm handlers', () => {
 
     const response = await handleConfirmValidatePost(
       jsonRequest({ token: TOKEN }),
-      { transport, log: { error: (message) => logs.push(message) } },
+      { transport, ...acquisitionOn, log: { error: (message) => logs.push(message) } },
     )
     assert.equal(response.status, 200)
     assert.deepEqual(await response.json(), { status: 'ready_to_confirm' })
@@ -252,6 +259,7 @@ describe('confirm handlers', () => {
     }
     const response = await handleConfirmConsumePost(jsonRequest({ token: TOKEN }), {
       transport,
+      ...acquisitionOn,
       log: { error: (message) => logs.push(message) },
     })
     assert.equal(response.status, 503)
@@ -328,6 +336,7 @@ describe('HTTP transport', () => {
 
     const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
       transport,
+      ...acquisitionOn,
     })
     const json = await response.json()
     assert.deepEqual(json, { status: 'unavailable' })
@@ -388,6 +397,7 @@ describe('HTTP transport', () => {
 
     const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
       transport,
+      ...acquisitionOn,
     })
     assert.equal(response.status, 503)
     assert.deepEqual(await response.json(), { status: 'unavailable' })
@@ -449,6 +459,7 @@ describe('HTTP transport', () => {
 
     const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
       transport,
+      ...acquisitionOn,
     })
     assert.equal(response.status, 503)
     assert.deepEqual(await response.json(), { status: 'unavailable' })
@@ -520,6 +531,7 @@ describe('HTTP transport', () => {
 
     const response = await handleConfirmConsumePost(jsonRequest({ token: TOKEN }), {
       transport,
+      ...acquisitionOn,
     })
     assert.equal(response.status, 503)
     assert.deepEqual(await response.json(), { status: 'unable_to_confirm' })

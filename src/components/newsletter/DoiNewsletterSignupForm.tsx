@@ -7,7 +7,6 @@
  * client kill-switch seam + BFF unavailable mapping.
  */
 
-import Link from 'next/link'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { NEWSLETTER_DOI_COPY } from '../../lib/newsletter/doi-copy'
@@ -154,13 +153,7 @@ export default function DoiNewsletterSignupForm({
           disabled={busy}
           onChange={(event) => controller.setConsentAccepted(event.target.checked)}
         />
-        <span>
-          {NEWSLETTER_DOI_COPY.consentLabel.replace('See the Privacy Policy.', '')}
-          <Link href="/privacy" className="underline">
-            See the Privacy Policy
-          </Link>
-          .
-        </span>
+        <span>{NEWSLETTER_DOI_COPY.consentLabel}</span>
       </label>
 
       <label className="flex items-start gap-2 text-sm text-slate-700">

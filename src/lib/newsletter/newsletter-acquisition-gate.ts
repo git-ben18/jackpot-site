@@ -5,8 +5,8 @@
  * handlers must not call the newsletter service and must never fall back to a
  * legacy subscribe writer or dual canonical subscriber path.
  *
- * Public acquisition enablement remains a Hosted Acceptance / release gate even
- * when this switch is locally enabled for development.
+ * Unset/empty does **not** enable acquisition — explicit true-like enablement
+ * is required. Public DOI launch still requires Hosted Acceptance / ACQ-05.
  */
 import 'server-only'
 
@@ -19,7 +19,7 @@ const DISABLED_VALUES = new Set(['0', 'false', 'off', 'disabled', 'no'])
 
 /**
  * Env: `NEWSLETTER_ACQUISITION_ENABLED`
- * - unset / empty → allowed (local default; not a production launch claim)
+ * - unset / empty → kill switch (fail closed; no silent production enablement)
  * - true-like → allowed
  * - false-like or unknown → kill switch (fail closed)
  */
@@ -28,7 +28,7 @@ export function resolveNewsletterAcquisitionGate(
 ): NewsletterAcquisitionGateDecision {
   const raw = env.NEWSLETTER_ACQUISITION_ENABLED
   if (raw === undefined || raw.trim() === '') {
-    return { allowed: true }
+    return { allowed: false, reason: 'kill_switch' }
   }
   const normalized = raw.trim().toLowerCase()
   if (ENABLED_VALUES.has(normalized)) {
