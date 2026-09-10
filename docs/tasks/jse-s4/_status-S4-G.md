@@ -1,4 +1,4 @@
-# S4-G status — Local integration acceptance
+# S4-G status - Local integration acceptance
 
 | Field | Value |
 |---|---|
@@ -7,7 +7,8 @@
 | Result | **accepted** |
 | Base | `main@e1f7379` (S4-B/C/D/E/F merged) |
 | Tested runtime SHA | `6871c6c354441eec270831e05b2086413931b732` (`6871c6c`) |
-| Evidence tip (this status commit) | `0fcfd3da3fb932219fec401c72ce798f744fd795` (`0fcfd3d`) |
+| Evidence tip (status acceptance record) | `0fcfd3da3fb932219fec401c72ce798f744fd795` (`0fcfd3d`) |
+| Branch HEAD (evidence-only) | filled after this commit |
 | Node engines | `>=22` (package.json) |
 
 ## Prerequisites
@@ -42,14 +43,14 @@ docs/tasks/jse-s4/_status-S4-G.md
 
 | Scenario | Result |
 |---|---|
-| Subscribe happy path (DOI controller → BFF → fake identity → fixture → accepted) | **PASS** |
-| DOI React component: email → consent → 21+ → submit → accepted copy | **PASS** |
-| Subscribe non-enumeration (success_new / pending / known_suppressed → same accepted) | **PASS** |
+| Subscribe happy path (DOI controller -> BFF -> fake identity -> fixture -> accepted) | **PASS** |
+| DOI React component: email -> consent -> 21+ -> submit -> accepted copy | **PASS** |
+| Subscribe non-enumeration (success_new / pending / known_suppressed -> same accepted) | **PASS** |
 | Subscribe failures (invalid input, timeout, network, 401/403, 429, malformed, unknown 2xx, 5xx, kill switch) | **PASS** |
-| Confirmation validate → ready → consume → success + token hygiene | **PASS** |
-| Confirmation React component: token bootstrap → validate → Confirm → click → success | **PASS** |
+| Confirmation validate -> ready -> consume -> success + token hygiene | **PASS** |
+| Confirmation React component: token bootstrap -> validate -> Confirm -> click -> success | **PASS** |
 | Confirmation validate already_complete / invalid / unknown / malformed fail-closed | **PASS** |
-| Confirmation consume invalid → `invalid_or_unusable`; unknown/malformed/401/5xx/network → `unable_to_confirm` | **PASS** |
+| Confirmation consume invalid -> `invalid_or_unusable`; unknown/malformed/401/5xx/network -> `unable_to_confirm` | **PASS** |
 | Missing workload identity blocks upstream; sanitized visitor failure | **PASS** |
 | Fake identity forbidden in production mode | **PASS** |
 | Active-runtime guardrail searches (legacy / secrets / SendGrid / hostname / client boundary) | **PASS** |
@@ -59,9 +60,9 @@ docs/tasks/jse-s4/_status-S4-G.md
 
 | Route | Kind |
 |---|---|
-| `/` | Static — DOI hero mounted |
-| `/newsletter/confirm` | Static — confirmation UX |
-| `/privacy` | Static — scaffold only (not ACQ-05 approved) |
+| `/` | Static - DOI hero mounted |
+| `/newsletter/confirm` | Static - confirmation UX |
+| `/privacy` | Static - scaffold only (not ACQ-05 approved) |
 | `POST /api/newsletter/subscribe` | Dynamic BFF |
 | `POST /api/newsletter/confirm/validate` | Dynamic BFF |
 | `POST /api/newsletter/confirm` | Dynamic BFF |
@@ -105,13 +106,13 @@ Browser DOI/confirm modules do not import server identity/transport/BFF modules 
 | Tested runtime SHA | `6871c6c354441eec270831e05b2086413931b732` (`6871c6c`) |
 | Branch | `feat/jse-s4-g-local-integration-acceptance` |
 | Runtime subject | `Close S4-G blockers: component integration, frozen fixture literals, consume failures.` |
-| Evidence tip | `0fcfd3da3fb932219fec401c72ce798f744fd795` (`0fcfd3d`) � status-only; not re-tested as runtime |
+| Evidence tip | `0fcfd3da3fb932219fec401c72ce798f744fd795` (`0fcfd3d`) - status-only; not re-tested as runtime |
 
 | Command | Result (at tested runtime SHA) |
 |---|---|
-| `npm test` | **PASS** — 155 tests, 0 fail |
+| `npm test` | **PASS** - 155 tests, 0 fail |
 | `npm run typecheck` | **PASS** |
-| `npm run build` | **PASS** — DOI `/`, confirm page, newsletter BFF routes present |
+| `npm run build` | **PASS** - DOI `/`, confirm page, newsletter BFF routes present |
 
 ## Checklist
 
@@ -119,7 +120,7 @@ Browser DOI/confirm modules do not import server identity/transport/BFF modules 
 - [x] DOI React component accepted flow covered on assembled stack
 - [x] Subscribe remains non-enumerating across fixture variants
 - [x] Full confirmation validate/consume path passes controlled local integration
-- [x] Confirmation React component ready→click→success covered on assembled stack
+- [x] Confirmation React component ready->click->success covered on assembled stack
 - [x] Consume invalid / unknown / malformed / 401 / 5xx / network map to bounded states
 - [x] Fixture path/DTO expectations are literal and independent of production contract imports
 - [x] Workload identity failure prevents protected downstream mutation
@@ -128,6 +129,6 @@ Browser DOI/confirm modules do not import server identity/transport/BFF modules 
 - [x] No browser direct-service path
 - [x] No server-secret/client boundary regression
 - [x] Tests/typecheck/build pass at tested runtime SHA
-- [x] Tested runtime SHA distinguished from evidence-only tip
+- [x] Tested runtime SHA distinguished from evidence-only tip / branch HEAD
 - [x] Conclusion `accepted` before S4-H
 - [x] No hosted/public deployment performed
