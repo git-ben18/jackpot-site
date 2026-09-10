@@ -40,10 +40,8 @@ function shouldClearToken(phase: ConfirmPhase): boolean {
 
 export type NewsletterConfirmController = {
   getPhase: () => ConfirmPhase
-  /** Opaque presence check — never returns the raw token to callers/tests that render UI. */
+  /** Opaque presence check — never returns the raw token. */
   hasToken: () => boolean
-  /** Test-only accessor; production UI must not render this value. */
-  peekTokenForTests: () => string
   subscribe: (listener: () => void) => () => void
   start: () => Promise<void>
   confirm: () => Promise<void>
@@ -106,7 +104,6 @@ export function createNewsletterConfirmController(
   return {
     getPhase: () => phase,
     hasToken: () => token.length > 0,
-    peekTokenForTests: () => token,
     subscribe(listener) {
       listeners.add(listener)
       return () => {

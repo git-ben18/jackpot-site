@@ -369,7 +369,6 @@ describe('S4-E confirmation controller behavior', () => {
     assert.equal(controller.hasToken(), true)
     controller.dispose()
     assert.equal(controller.hasToken(), false)
-    assert.equal(controller.peekTokenForTests(), '')
   })
 
   it('never exposes the raw token through phase transitions used for UI copy', async () => {
@@ -442,5 +441,11 @@ describe('S4-E NewsletterConfirmClient presentation', () => {
     const client = readFileSync(join(srcRoot, 'lib/newsletter/confirm-client.ts'), 'utf8')
     assert.match(client, /status === 200/)
     assert.doesNotMatch(client, /status !== 200 && status !== 202/)
+
+    const controllerSource = readFileSync(
+      join(srcRoot, 'lib/newsletter/newsletter-confirm-controller.ts'),
+      'utf8',
+    )
+    assert.doesNotMatch(controllerSource, /peekToken|getToken|rawToken/)
   })
 })
