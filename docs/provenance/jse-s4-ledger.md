@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S4` |
-| Status | S4-A contract freeze recorded from inspected upstream SHAs; no S4 runtime adoption yet |
+| Status | S4-D caller-side workload identity **IMPLEMENTED** on S4-C lineage (`5f3f0db`); not hosted-accepted |
 | S4 start `main` tip inspected | `jackpot-site main@3063eb1eb88419eaa88124694cb64d1fcdf2b3e1` |
 | Accepted S3 descendant baseline | **Not on `main`** — S3-F accepted; S3-G/S3-H not merged (see `_status-S4-A.md`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -30,9 +30,17 @@ Do not pre-claim migration. Add a row when an artifact is actually copied, harde
 
 ## Adopted runtime artifacts (S4)
 
-None. S4-A is documentation only.
-
 Later packets copy from `466bfb0` unless a classified post-baseline source SHA is recorded first. Product copy and consent version come from EC-05A / the newsletter registry, not from source `doi-constants.ts`.
+
+| Source path | Source SHA | JSE-003 disposition | Target path | Copy vs harden vs reimplement | Hardening changes | Tests/fixtures | Deferred/excluded deps |
+|---|---|---|---|---|---|---|---|
+| `src/app/api/newsletter/subscribe/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/subscribe/route.ts` | REIMPLEMENT | Frozen browser DTO; no `consentTextVersion`; fake transport in tests; identity fail-closed until S4-D | `newsletter-bff-contract.test.ts` | source `doi-constants`, `core-proxy` name, `/api/subscribe` |
+| `src/app/api/newsletter/confirm/validate/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/confirm/validate/route.ts` | REIMPLEMENT | Token allowlist; no-store; map `ready_to_confirm` not source `valid`; never log token | same | confirm UI (S4-E) |
+| `src/app/api/newsletter/confirm/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/confirm/route.ts` | REIMPLEMENT | Distinct consume path; unexpected bodies → `unable_to_confirm` | same | GET never consumes |
+| `src/lib/newsletter/core-proxy.ts` | `466bfb0` | REIMPLEMENT (rename) | `src/lib/newsletter/newsletter-service-client.ts` + `newsletter-canonical-contract.ts` + `newsletter-bff.ts` | REIMPLEMENT + HARDEN (S4-F) | Canonical DTOs; 10s timeout; no website/turnstile forward; sanitizer; **httpStatus consulted for success**; default auth is `resolveWorkloadIdentityAuth` (S4-D) | same + httpStatus + workload identity cases | hosted OIDC acceptance |
+| `src/lib/newsletter/env.ts` | `466bfb0` | REIMPLEMENT | `src/lib/newsletter/newsletter-service-env.ts` | REIMPLEMENT | Single `NEWSLETTER_SERVICE_BASE_URL`; no `doi-flag` | same | `NEXT_PUBLIC_*` service URL |
+| n/a (target seam) | n/a | n/a | `src/lib/newsletter/newsletter-public-contract.ts` | implemented | Browser-safe statuses/version from S4-A | same | UI (S4-B) |
+| n/a (target seam) | n/a | n/a | `src/lib/newsletter/newsletter-service-auth.ts` | implemented (S4-D) | Vercel OIDC via `@vercel/oidc` + explicit local fake; production/preview forbid fake; `Authorization: Bearer` attachment | `workloadIdentity.test.ts` + HTTP transport cases | hosted OIDC acceptance |
 
 ## Planned S4 source families (not yet adopted)
 
@@ -44,11 +52,6 @@ Later packets copy from `466bfb0` unless a classified post-baseline source SHA i
 | `src/lib/newsletter/confirm-client.ts` | `466bfb0` | COPY + HARDEN | `src/lib/newsletter/confirm-client.ts` | Map `ready_to_confirm`, not source `valid` |
 | `src/components/newsletter/NewsletterConfirmClient.tsx` | `466bfb0` | COPY + HARDEN | S4-E | Token hygiene |
 | `src/lib/newsletter/doi-constants.ts` | `466bfb0` | COPY + HARDEN after reconcile | target constants module | Replace version/copy/sources from EC-05A + service |
-| `src/app/api/newsletter/subscribe/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/subscribe/route.ts` | OIDC; sanitizer |
-| `src/app/api/newsletter/confirm/validate/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/confirm/validate/route.ts` | Same |
-| `src/app/api/newsletter/confirm/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/confirm/route.ts` | Same |
-| `src/lib/newsletter/core-proxy.ts` | `466bfb0` | REIMPLEMENT (rename) | newsletter-service client / public contract | Authenticated fetch; do not copy source field allowlist |
-| `src/lib/newsletter/env.ts` | `466bfb0` | REIMPLEMENT | server env reader | No `doi-flag` |
 
 ## Excluded (must not enter the S4 graph)
 

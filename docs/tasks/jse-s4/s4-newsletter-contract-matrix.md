@@ -100,6 +100,20 @@ Observed route-level HTTP (not a complete flow table):
 | Missing Supabase client | 503 | `invalid_request` (message generic) |
 | Flow result | `result.httpStatus` | `runPublicSubscribeFlow()` |
 
+**BFF subscribe HTTP status class:** HTTP class is authority, not body shape alone. The live service can return HTTP 503 + `{ error: "invalid_request" }` when Supabase is unavailable — that must be `unavailable`, not visitor `invalid`.
+
+| HTTP class | Canonical body | Transport result |
+|---|---|---|
+| 2xx | `confirmation_if_eligible` success | `success` |
+| 2xx | anything else | `unavailable` |
+| 400 / 413 | `invalid_request` / `invalid_email` / `consent_required` / `age_required` | `error` / browser `invalid` |
+| 400 / 413 | anything else | `unavailable` |
+| 429 | `rate_limited` | `rate_limited` |
+| 429 | anything else | `unavailable` |
+| 401 / 403 | any | `unauthorized` / `unavailable` |
+| 5xx | any (including `invalid_request` when Supabase is down) | `unavailable` |
+| other non-2xx | any | `unavailable` |
+
 Age/consent/email validation failures are **user-correctable** and must not echo membership/suppression (EC-05A).
 
 ## Browser-safe subscribe response (BFF → browser)
@@ -111,7 +125,7 @@ Clients key on JSON `status`, not raw upstream bodies.
 | `accepted` | service `ok: true` + `confirmation_if_eligible` | Generic non-enumerating success |
 | `invalid` | `invalid_request`, `invalid_email`, `consent_required`, `age_required`, or browser-schema failure | User-correctable; still non-enumerating of membership |
 | `rate_limited` | `rate_limited` / 429 | Cooldown-safe |
-| `unavailable` | `temporarily_unavailable`, 503, timeout, network, missing config, unknown/malformed `2xx` | Fail closed; not signup success |
+| `unavailable` | `temporarily_unavailable`, 5xx (including 503 + `invalid_request`), timeout, network, missing config, unknown/malformed `2xx` | Fail closed; not signup success |
 
 Browser `status` is `accepted` on canonical success. Display the generic check-email message. Do **not** expose the service status string `confirmation_if_eligible`, subscriber-state flags, tokens, credentials, stack traces, or raw upstream JSON.
 
