@@ -60,13 +60,15 @@ Produce evidence sufficient to call JSE-S3 implemented and accepted at the targe
 
 ## Acceptance checklist
 
-- [ ] Closeout evidence doc references actual commands/results, not plans
-- [ ] Provenance ledger complete for all adopted runtime files
-- [ ] Dependency + excluded-import audits recorded
-- [ ] S3-F matrix linked and `accepted`
-- [ ] S3 deferred decisions restated
-- [ ] Plan/JSE-001 status updated without claiming production authority transfer
-- [ ] S4 unblocked for independent start regarding deferred S3 enhancements
+Completed 2026-09-10 — see [`_status-S3-H.md`](./_status-S3-H.md) and [`docs/evidence/jse-s3-closeout.md`](../../evidence/jse-s3-closeout.md):
+
+- [x] Closeout evidence doc references actual commands/results, not plans
+- [x] Provenance ledger complete for all adopted runtime files
+- [x] Dependency + excluded-import audits recorded
+- [x] S3-F matrix linked and `accepted`
+- [x] S3 deferred decisions restated
+- [x] Plan/JSE-001 status updated without claiming production authority transfer
+- [x] S4 unblocked for independent start regarding deferred S3 enhancements
 
 ## Agent prompt
 

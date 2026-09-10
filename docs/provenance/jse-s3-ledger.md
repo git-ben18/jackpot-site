@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S3` |
-| Status | S3-F **ACCEPTED** (DB-W3-D + W3-E); S3-F-RLS **N/A**; homepage live mount still S3-G |
+| Status | S3-G complete — curated discovery mounted on `/` with S4 DOI hero; S3-H closeout recorded |
 | S2 / S3 start baseline | `jackpot-site main@7abb209f7bafd0da53d08027e5773eff272fa39a` |
 | Current `main` descendant at S3-A | `eb154a74652c537f2bc6a428e0c290bd11fe0e28` (S3 plan merge; contains `7abb209`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -49,6 +49,7 @@ Do not pre-claim migration. Add a row when an artifact is actually copied, harde
 | `src/components/v2/curated-promos/CuratedPromoDetailSheet.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoDetailSheet.tsx` | COPY + HARDEN | Removed overlap/related-events UI and `useTracker` / `trackClick` (D-S3-02/03). Source CTA remains a plain outbound link | composed presentation tests | `useTracker`, `/api/log-click`, overlap display |
 | `src/components/v2/curated-promos/CuratedPromoDiscoveryWidget.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoDiscoveryWidget.tsx` | COPY + HARDEN | Removed `useTracker` and all interaction/view tracking effects (D-S3-03). Filter + open handlers are local state only | composed presentation tests | `useTracker`, `/api/log-interaction` |
 | `src/lib/server/curatedPromos.ts` (behavior only) | `466bfb065a9c34010ee0f0de22b419299259fa46` | REIMPLEMENT | `src/lib/server/curatedPromoRepository.ts` + `src/lib/server/publicSupabase.ts` | REIMPLEMENT | DB-W3 `api` schema; publishable/anon only; no service-role; no overlaps; no public-view fallback; structured fail-closed result | `curatedPromoRepository.test.ts` | `artifact-queries.ts`, `supabase-server.ts`, overlap fetch, admin client |
+| `src/components/v2/curated-promos/CuratedPromoLandingSection.tsx` | `466bfb065a9c34010ee0f0de22b419299259fa46` | COPY + HARDEN | `src/components/v2/curated-promos/CuratedPromoLandingSection.tsx` + `CuratedPromoLandingSectionView.tsx` | COPY + HARDEN | Target `getCuratedPromos` + `unstable_cache` (300s); fail-soft error ≠ empty publish; no mock fallback; no tracker/overlaps; brand tokens remapped. Homepage also mounts S4 `InlineNewsletterHero` (not in this source file). | `curated-promo-landing-section.test.ts` | source `curatedPromos.ts`, Supabase debug banner |
 
 ## Deferred for initial S3 (do not adopt)
 
