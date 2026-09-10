@@ -199,18 +199,22 @@ The following may be documented as deferred, but not claimed as proven in S4-F:
 
 ## Acceptance checklist
 
-- [ ] Request/response schemas and allowlists are enforced.
-- [ ] Non-enumeration behavior is proven.
-- [ ] No browser-visible/server-secret crossover exists.
-- [ ] Legacy newsletter persistence/fallbacks are absent from active runtime.
-- [ ] Confirmation tokens are handled hygienically.
-- [ ] Missing identity and dependency failures fail closed.
-- [ ] Kill switch prevents mutation without fallback.
-- [ ] Abuse-control boundary/deferred hosted controls are documented.
-- [ ] Repository security searches are recorded.
-- [ ] Security-focused tests pass.
-- [ ] S4-F conclusion is acceptable before S4-G.
-- [ ] No deployment/production mutation is performed.
+Completed 2026-09-10 — see [`_status-S4-F.md`](./_status-S4-F.md):
+
+- [x] Request/response schemas and allowlists are enforced.
+- [x] Non-enumeration behavior is proven.
+- [x] No browser-visible/server-secret crossover exists.
+- [x] Legacy newsletter persistence/fallbacks are absent from active runtime.
+- [x] Confirmation tokens are handled hygienically.
+- [x] Missing identity and dependency failures fail closed.
+- [x] Kill switch prevents mutation without fallback.
+- [x] Abuse-control boundary/deferred hosted controls are documented.
+- [x] Repository security searches are recorded.
+- [x] Security-focused tests pass.
+- [x] S4-F conclusion is acceptable before S4-G.
+- [x] No deployment/production mutation is performed.
+
+Status: [_status-S4-F.md](./_status-S4-F.md)
 
 ## Agent prompt
 
