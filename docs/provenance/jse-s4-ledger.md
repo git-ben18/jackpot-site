@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S4` |
-| Status | S4-E confirmation UX implemented locally on S4-C/D lineage; hosted confirmation E2E deferred |
+| Status | S4-B DOI UI implemented locally on S4-C/D/E lineage; S4-F on separate branch; hosted DOI enablement deferred |
 | S4 start `main` tip inspected | `jackpot-site main@3063eb1eb88419eaa88124694cb64d1fcdf2b3e1` |
 | Accepted S3 descendant baseline | **Not on `main`** — S3-F accepted; S3-G/S3-H not merged (see `_status-S4-A.md`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -44,15 +44,16 @@ Later packets copy from `466bfb0` unless a classified post-baseline source SHA i
 | `src/lib/newsletter/confirm-client.ts` | `466bfb0` | COPY + HARDEN | `src/lib/newsletter/confirm-client.ts` | COPY + HARDEN | Frozen `{ status }` (`ready_to_confirm`); reject source `valid`/`outcome`; same-origin only; empty token no-fetch | `newsletter-confirm-ux.test.ts` | doi-constants |
 | `src/components/newsletter/NewsletterConfirmClient.tsx` | `466bfb0` | COPY + HARDEN | `src/components/newsletter/NewsletterConfirmClient.tsx` | COPY + HARDEN | Token hygiene + replaceState; consume lock; bounded copy | same | analytics, doi-constants |
 | n/a | n/a | implemented | `src/lib/newsletter/newsletter-confirm-copy.ts` | implemented | Visitor-safe confirm strings only | same | EC-05A email sender provisioning |
+| `src/lib/newsletter/subscribe-client.ts` | `466bfb0` | COPY + HARDEN | `src/lib/newsletter/subscribe-client.ts` | COPY + HARDEN | Same-origin only; frozen `{ status }`; no `consentTextVersion`; reject arbitrary 2xx | `newsletter-doi-ui.test.ts` | service hostname, legacy subscribe |
+| `src/components/newsletter/DoiNewsletterSignupForm.tsx` | `466bfb0` | COPY + HARDEN | `src/components/newsletter/DoiNewsletterSignupForm.tsx` | COPY + HARDEN | EC-05A consent/age; honeypot; kill-switch seam; bounded status copy | same | AcquisitionSignup, soft-gate, analytics |
+| `src/components/InlineNewsletterHero.tsx` | `466bfb0` | REIMPLEMENT | `src/components/InlineNewsletterHero.tsx` | REIMPLEMENT | DOI-only mount of form; no modal/footer legacy fallback | same | EmailSignupForm |
+| n/a | n/a | implemented | `src/lib/newsletter/doi-copy.ts` + `newsletter-subscribe-controller.ts` | implemented | EC-05A copy; client validation + in-flight lock | same | source doi-constants version strings |
 
 ## Planned S4 source families (not yet adopted)
 
 | Source path | Source SHA | JSE-003 disposition | Intended target | Notes |
 |---|---|---|---|---|
-| `src/components/InlineNewsletterHero.tsx` | `466bfb0` | REIMPLEMENT | `src/components/InlineNewsletterHero.tsx` | DOI-only; no legacy writer |
-| `src/components/newsletter/DoiNewsletterSignupForm.tsx` | `466bfb0` | COPY + HARDEN | `src/components/newsletter/DoiNewsletterSignupForm.tsx` | EC-05A copy; same-origin client |
-| `src/lib/newsletter/subscribe-client.ts` | `466bfb0` | COPY + HARDEN | `src/lib/newsletter/subscribe-client.ts` | Same-origin only |
-| `src/lib/newsletter/doi-constants.ts` | `466bfb0` | COPY + HARDEN after reconcile | target constants module | Replace version/copy/sources from EC-05A + service; confirm copy already covered by `newsletter-confirm-copy.ts` |
+| `src/lib/newsletter/doi-constants.ts` | `466bfb0` | COPY + HARDEN after reconcile | partially covered by `doi-copy.ts` / public contract | Version/copy from EC-05A; do not copy source `newsletter_doi_v1` |
 
 ## Excluded (must not enter the S4 graph)
 

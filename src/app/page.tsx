@@ -1,11 +1,13 @@
+import InlineNewsletterHero from '../components/InlineNewsletterHero'
+
 export default function HomePage() {
   return (
     <>
-      <h1>Jackpot Homie</h1>
+      <InlineNewsletterHero />
       <p className="muted">
-        Public homepage scaffold for JSE-S2. Newsletter acquisition and curated
-        promo discovery are not mounted yet.
+        Public acquisition enablement remains a Hosted Acceptance / release gate.
+        This page exercises the local DOI signup UI against the same-origin BFF.
       </p>
     </>
-  );
+  )
 }
