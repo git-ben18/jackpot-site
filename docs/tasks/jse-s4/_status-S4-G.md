@@ -106,7 +106,8 @@ Browser DOI/confirm modules do not import server identity/transport/BFF modules 
 | Tested runtime SHA | `6871c6c354441eec270831e05b2086413931b732` (`6871c6c`) |
 | Branch | `feat/jse-s4-g-local-integration-acceptance` |
 | Runtime subject | `Close S4-G blockers: component integration, frozen fixture literals, consume failures.` |
-| Evidence tip | `0fcfd3da3fb932219fec401c72ce798f744fd795` (`0fcfd3d`) - status-only; not re-tested as runtime |
+| Evidence status body | `7a89be8` - status-only; not re-tested as runtime |
+| Branch HEAD | evidence-only commits after `6871c6c`; use `git rev-parse HEAD` |
 
 | Command | Result (at tested runtime SHA) |
 |---|---|
