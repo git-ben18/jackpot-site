@@ -6,7 +6,7 @@
 | Packet | [S4-G-local-integration-acceptance.md](./S4-G-local-integration-acceptance.md) |
 | Result | **accepted** |
 | Base | `main@e1f7379` (S4-B/C/D/E/F merged) |
-| Tip | `feat/jse-s4-g-local-integration-acceptance@PENDING` |
+| Tip | `feat/jse-s4-g-local-integration-acceptance@9f7fcd4a766748060386715a8bc4782bc028889b` |
 | Node engines | `>=22` (package.json) |
 
 ## Prerequisites
@@ -88,15 +88,15 @@ Browser DOI/confirm modules do not import server identity/transport/BFF modules 
 | Field | Value |
 |---|---|
 | Date | 2026-09-10 |
-| SHA | `PENDING` |
+| SHA | `9f7fcd4a766748060386715a8bc4782bc028889b` (`9f7fcd4`) |
 | Branch | `feat/jse-s4-g-local-integration-acceptance` |
-| Subject | pending |
+| Subject | `Implement S4-G local newsletter integration acceptance.` |
 
 | Command | Result |
 |---|---|
-| `npm test` | pending |
-| `npm run typecheck` | pending |
-| `npm run build` | pending |
+| `npm test` | **PASS** — 151 tests, 0 fail |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** — DOI `/`, confirm page, newsletter BFF routes present |
 
 ## Checklist
 
