@@ -7,8 +7,8 @@
 | Result | **accepted** |
 | Base | `main@e1f7379` (S4-B/C/D/E/F merged) |
 | Tested runtime SHA | `6871c6c354441eec270831e05b2086413931b732` (`6871c6c`) |
-| Evidence tip (status acceptance record) | `0fcfd3da3fb932219fec401c72ce798f744fd795` (`0fcfd3d`) |
-| Branch HEAD (evidence-only) | `7a89be8317f23f1996dc6b1a9cbf354967439381` (`7a89be8`) - status-only; not re-tested as runtime |
+| Evidence status body | `7a89be8317f23f1996dc6b1a9cbf354967439381` (`7a89be8`) |
+| Branch HEAD | evidence-only commits after tested runtime; not re-tested as runtime |
 | Node engines | `>=22` (package.json) |
 
 ## Prerequisites
