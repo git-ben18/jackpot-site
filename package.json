@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --require ./scripts/stub-server-only.cjs --test src/lib/__tests__/curatedPromoDiscoveryMapper.test.ts src/lib/__tests__/curated-promo-display.test.ts src/lib/__tests__/curatedPromoSignalCategory.test.ts src/lib/__tests__/curated-promo-leaf-presentation.test.ts src/lib/__tests__/curated-promo-composed-presentation.test.ts src/lib/__tests__/curatedPromoRepository.test.ts src/lib/__tests__/newsletter-bff-contract.test.ts src/lib/__tests__/workloadIdentity.test.ts src/lib/__tests__/newsletter-confirm-ux.test.ts src/lib/__tests__/newsletter-doi-ui.test.ts src/lib/__tests__/newsletter-security-guardrails.test.ts"  },
+    "test": "tsx --require ./scripts/stub-server-only.cjs --test src/lib/__tests__/curatedPromoDiscoveryMapper.test.ts src/lib/__tests__/curated-promo-display.test.ts src/lib/__tests__/curatedPromoSignalCategory.test.ts src/lib/__tests__/curated-promo-leaf-presentation.test.ts src/lib/__tests__/curated-promo-composed-presentation.test.ts src/lib/__tests__/curatedPromoRepository.test.ts src/lib/__tests__/newsletter-bff-contract.test.ts src/lib/__tests__/workloadIdentity.test.ts src/lib/__tests__/newsletter-confirm-ux.test.ts src/lib/__tests__/newsletter-doi-ui.test.ts src/lib/__tests__/newsletter-security-guardrails.test.ts src/lib/__tests__/newsletter-local-integration.test.ts"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
     "@vercel/oidc": "^3.8.7",
