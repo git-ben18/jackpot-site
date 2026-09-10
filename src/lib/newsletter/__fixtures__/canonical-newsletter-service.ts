@@ -1,19 +1,29 @@
 /**
  * Controlled local/test canonical newsletter-service fixture for S4-G.
  * Emulates frozen jackpot-api-newsletter public contract paths/bodies.
- * Not a production dependency and not a network client.
+ *
+ * Path/message expectations are **literal frozen backend contract values**,
+ * not imports from production newsletter-canonical-contract — so S4-G can
+ * detect path/DTO drift in the target implementation.
  */
-import {
-  CANONICAL_CONFIRM_PATH,
-  CANONICAL_CONFIRM_VALIDATE_PATH,
-  CANONICAL_SUBSCRIBE_PATH,
-  type CanonicalConfirmTokenInput,
-  type CanonicalSubscribeInput,
-} from '../newsletter-canonical-contract'
-import { NEWSLETTER_CHECK_EMAIL_COPY } from '../newsletter-public-contract'
-
 export const FIXTURE_NEWSLETTER_SERVICE_ORIGIN =
   'https://fixture.newsletter.test' as const
+
+/** Frozen backend contract paths (S4-A / jackpot-api-newsletter). */
+export const EXPECTED_SUBSCRIBE_PATH =
+  '/api/public/newsletter/subscribe' as const
+export const EXPECTED_VALIDATE_PATH =
+  '/api/public/newsletter/confirm/validate' as const
+export const EXPECTED_CONFIRM_PATH =
+  '/api/public/newsletter/confirm' as const
+
+/** Frozen non-enumerating subscribe success message (EC-05A / service). */
+export const EXPECTED_SUBSCRIBE_SUCCESS_MESSAGE =
+  'Check your email to confirm your subscription.' as const
+
+/** Frozen consent policy version (EC-05A / newsletter registry). */
+export const EXPECTED_CONSENT_POLICY_VERSION =
+  'newsletter-consent-us-v1-2026-07-31' as const
 
 export type FixtureSubscribeMode =
   | 'success_new'
@@ -136,21 +146,21 @@ export function createCanonicalNewsletterFixtureFetch(
       return jsonResponse(401, { ok: false, error: 'invalid_request' })
     }
 
-    if (path === CANONICAL_SUBSCRIBE_PATH) {
-      return handleSubscribe(state.subscribeMode, body as CanonicalSubscribeInput)
+    if (path === EXPECTED_SUBSCRIBE_PATH) {
+      return handleSubscribe(state.subscribeMode)
     }
-    if (path === CANONICAL_CONFIRM_VALIDATE_PATH) {
-      return handleValidate(state.validateMode, body as CanonicalConfirmTokenInput)
+    if (path === EXPECTED_VALIDATE_PATH) {
+      return handleValidate(state.validateMode)
     }
-    if (path === CANONICAL_CONFIRM_PATH) {
-      return handleConsume(state.consumeMode, body as CanonicalConfirmTokenInput)
+    if (path === EXPECTED_CONFIRM_PATH) {
+      return handleConsume(state.consumeMode)
     }
 
     return jsonResponse(404, { ok: false, error: 'invalid_request' })
   }
 }
 
-function handleSubscribe(mode: FixtureSubscribeMode, _body: CanonicalSubscribeInput): Response {
+function handleSubscribe(mode: FixtureSubscribeMode): Response {
   if (mode === 'timeout' || mode === 'network') throwMode(mode)
   if (mode === 'unauthorized') {
     return jsonResponse(401, { ok: false, error: 'invalid_request' })
@@ -182,23 +192,19 @@ function handleSubscribe(mode: FixtureSubscribeMode, _body: CanonicalSubscribeIn
     return jsonResponse(200, {
       ok: true,
       status: 'created_new_subscriber',
-      message: NEWSLETTER_CHECK_EMAIL_COPY,
+      message: EXPECTED_SUBSCRIBE_SUCCESS_MESSAGE,
     })
   }
 
-  // Non-enumerating public success — internal fixture labels differ only by mode selection;
-  // the public body remains identical across success_* variants.
+  // Non-enumerating public success — identical body across success_* modes.
   return jsonResponse(200, {
     ok: true,
     status: 'confirmation_if_eligible',
-    message: NEWSLETTER_CHECK_EMAIL_COPY,
+    message: EXPECTED_SUBSCRIBE_SUCCESS_MESSAGE,
   })
 }
 
-function handleValidate(
-  mode: FixtureValidateMode,
-  _body: CanonicalConfirmTokenInput,
-): Response {
+function handleValidate(mode: FixtureValidateMode): Response {
   if (mode === 'timeout' || mode === 'network') throwMode(mode)
   if (mode === 'unauthorized') {
     return jsonResponse(401, { status: 'unable_to_confirm' })
@@ -218,10 +224,7 @@ function handleValidate(
   return jsonResponse(200, { status: mode })
 }
 
-function handleConsume(
-  mode: FixtureConsumeMode,
-  _body: CanonicalConfirmTokenInput,
-): Response {
+function handleConsume(mode: FixtureConsumeMode): Response {
   if (mode === 'timeout' || mode === 'network') throwMode(mode)
   if (mode === 'unauthorized') {
     return jsonResponse(401, { status: 'unable_to_confirm' })

@@ -24,6 +24,10 @@ export type { ConfirmPhase }
 export type NewsletterConfirmClientProps = {
   /** Optional injected fetch for local/S4-G tests. */
   fetchImpl?: ConfirmClientDeps['fetchImpl']
+  /** Optional search accessor for local/S4-G tests. */
+  getSearch?: () => string
+  /** Optional URL cleanup for local/S4-G tests. */
+  replaceUrl?: (path: string) => void
 }
 
 function copyForFinalPhase(phase: ConfirmPhase): string {
@@ -49,15 +53,19 @@ function focusTargetForPhase(phase: ConfirmPhase): 'status' | 'confirm' | 'retry
 
 export default function NewsletterConfirmClient({
   fetchImpl,
-}: NewsletterConfirmClientProps = {}) {
+  getSearch,
+  replaceUrl,
+}: NewsletterConfirmClientProps) {
   const controllerRef = useRef<NewsletterConfirmController | null>(null)
   if (!controllerRef.current) {
     controllerRef.current = createNewsletterConfirmController({
       fetchImpl,
-      getSearch: () => window.location.search,
-      replaceUrl: (path) => {
-        window.history.replaceState(null, '', path)
-      },
+      getSearch: getSearch ?? (() => window.location.search),
+      replaceUrl:
+        replaceUrl ??
+        ((path) => {
+          window.history.replaceState(null, '', path)
+        }),
     })
   }
   const controller = controllerRef.current
