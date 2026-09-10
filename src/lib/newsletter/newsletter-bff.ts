@@ -23,6 +23,7 @@ import {
   createHttpNewsletterServiceTransport,
   type NewsletterServiceTransport,
 } from './newsletter-service-client'
+import { isNewsletterAcquisitionEnabled } from './newsletter-acquisition-gate'
 
 export const MAX_PUBLIC_JSON_BYTES = 4096
 
@@ -54,6 +55,8 @@ export type NewsletterBffLogger = {
 export type NewsletterBffDeps = {
   transport?: NewsletterServiceTransport
   log?: NewsletterBffLogger
+  /** Injected for tests; defaults to server kill-switch env gate. */
+  isAcquisitionEnabled?: () => boolean
 }
 
 const defaultLogger: NewsletterBffLogger = {
@@ -66,6 +69,10 @@ function defaultTransport(): NewsletterServiceTransport {
   return createHttpNewsletterServiceTransport({
     auth: resolveWorkloadIdentityAuth(),
   })
+}
+
+function acquisitionAllowed(deps: NewsletterBffDeps): boolean {
+  return deps.isAcquisitionEnabled?.() ?? isNewsletterAcquisitionEnabled()
 }
 
 export type ParsedJson =
@@ -181,6 +188,12 @@ export async function handleSubscribePost(
     return NextResponse.json({ status: 'accepted' }, { status: 200 })
   }
 
+  if (!acquisitionAllowed(deps)) {
+    const log = deps.log ?? defaultLogger
+    log.error('newsletter subscribe unavailable')
+    return NextResponse.json({ status: 'unavailable' }, { status: 503 })
+  }
+
   const transport = deps.transport ?? defaultTransport()
   const canonical = translateBrowserSubscribeToCanonical(browser.value)
   const result = await transport.subscribe(canonical)
@@ -223,6 +236,15 @@ export async function handleConfirmValidatePost(
     )
   }
 
+  if (!acquisitionAllowed(deps)) {
+    const log = deps.log ?? defaultLogger
+    log.error('newsletter confirm validate unavailable')
+    return NextResponse.json(
+      { status: 'unable_to_confirm' },
+      { status: 503, headers: CONFIRM_NO_STORE_HEADERS },
+    )
+  }
+
   const transport = deps.transport ?? defaultTransport()
   const result = await transport.validateConfirmation({ token: browser.token })
   if (result.kind === 'success') {
@@ -257,6 +279,15 @@ export async function handleConfirmConsumePost(
     return NextResponse.json(
       { status: 'invalid_or_unusable' },
       { status: 400, headers: CONFIRM_NO_STORE_HEADERS },
+    )
+  }
+
+  if (!acquisitionAllowed(deps)) {
+    const log = deps.log ?? defaultLogger
+    log.error('newsletter confirm consume unavailable')
+    return NextResponse.json(
+      { status: 'unable_to_confirm' },
+      { status: 503, headers: CONFIRM_NO_STORE_HEADERS },
     )
   }
 
