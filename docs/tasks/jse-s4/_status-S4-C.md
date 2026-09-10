@@ -29,7 +29,7 @@ No `core-proxy.ts` name. No `/api/subscribe`. No service-role. No `NEXT_PUBLIC_`
 - Browser subscribe statuses: `accepted` / `invalid` / `rate_limited` / `unavailable`.
 - Confirm validate/consume map frozen service statuses 1:1; unknown/malformed fail closed to `unable_to_confirm`.
 - Honeypot `website` never forwarded; filled honeypot returns `accepted` without upstream mutation.
-- Live HTTP transport requires workload identity headers before fetch. S4-C default auth is deferred/fail-closed. Tests use a fake transport.
+- Live HTTP transport requires workload identity headers before fetch. **S4-D** fills `newsletter-service-auth` with Vercel OIDC (local fake for tests). Deferred auth remains available for explicit fail-closed test injection.
 - Timeout: 10s (`UPSTREAM_TIMEOUT_MS`), matching source BFF, classified as S4-C choice.
 - Subscribe transport binds body to HTTP class (`classifySubscribeHttpResponse`): 2xx success only; 400/413 validation errors only; 429 + `rate_limited` only; 5xx (including 503 + `invalid_request`) → unavailable.
 

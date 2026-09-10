@@ -18,7 +18,7 @@ import {
   isRecord,
   translateBrowserSubscribeToCanonical,
 } from './newsletter-canonical-contract'
-import { createDeferredWorkloadIdentityAuth } from './newsletter-service-auth'
+import { resolveWorkloadIdentityAuth } from './newsletter-service-auth'
 import {
   createHttpNewsletterServiceTransport,
   type NewsletterServiceTransport,
@@ -64,7 +64,7 @@ const defaultLogger: NewsletterBffLogger = {
 
 function defaultTransport(): NewsletterServiceTransport {
   return createHttpNewsletterServiceTransport({
-    auth: createDeferredWorkloadIdentityAuth(),
+    auth: resolveWorkloadIdentityAuth(),
   })
 }
 

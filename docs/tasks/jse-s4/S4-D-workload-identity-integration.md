@@ -144,16 +144,20 @@ Record these as explicit downstream requirements, not S4 exit criteria:
 
 ## Acceptance checklist
 
-- [ ] Workload identity integration exists only on the server side.
-- [ ] Protected downstream requests fail closed when identity is unavailable.
-- [ ] Browser-provided auth material cannot become downstream workload authority.
-- [ ] Test/fake identity is impossible to use silently in production.
-- [ ] No permanent fallback bearer token is introduced without accepted upstream approval.
-- [ ] No identity/token material is logged or returned to browsers.
-- [ ] No `NEXT_PUBLIC_*` credential dependency exists.
-- [ ] Integration is locally/static tested.
-- [ ] Evidence explicitly says operational Vercel OIDC is deferred to Hosted Acceptance.
-- [ ] No deployment is required/performed.
+Completed 2026-09-10 on S4-C lineage — see [`_status-S4-D.md`](./_status-S4-D.md):
+
+- [x] Workload identity integration exists only on the server side.
+- [x] Protected downstream requests fail closed when identity is unavailable.
+- [x] Browser-provided auth material cannot become downstream workload authority.
+- [x] Test/fake identity is impossible to use silently in production.
+- [x] No permanent fallback bearer token is introduced without accepted upstream approval.
+- [x] No identity/token material is logged or returned to browsers.
+- [x] No `NEXT_PUBLIC_*` credential dependency exists.
+- [x] Integration is locally/static tested.
+- [x] Evidence explicitly says operational Vercel OIDC is deferred to Hosted Acceptance.
+- [x] No deployment is required/performed.
+
+Status: [_status-S4-D.md](./_status-S4-D.md)
 
 ## Agent prompt
 

@@ -1,7 +1,7 @@
 /**
  * Server-only newsletter-service transport.
  * REIMPLEMENT of source core-proxy authenticated fetch — new name, canonical DTOs,
- * fail-closed identity attachment (S4-D fills the auth provider).
+ * fail-closed identity attachment via S4-D workload identity provider.
  */
 import 'server-only'
 
@@ -22,7 +22,7 @@ import {
   type CanonicalValidateResponse,
 } from './newsletter-canonical-contract'
 import {
-  createDeferredWorkloadIdentityAuth,
+  resolveWorkloadIdentityAuth,
   type NewsletterServiceAuth,
 } from './newsletter-service-auth'
 import {
@@ -93,7 +93,7 @@ export type NewsletterHttpTransportDeps = {
 export function createHttpNewsletterServiceTransport(
   deps: NewsletterHttpTransportDeps = {},
 ): NewsletterServiceTransport {
-  const auth = deps.auth ?? createDeferredWorkloadIdentityAuth()
+  const auth = deps.auth ?? resolveWorkloadIdentityAuth({ env: deps.env })
   const fetchImpl = deps.fetchImpl ?? fetch
   const timeoutMs = deps.nowTimeoutMs ?? UPSTREAM_TIMEOUT_MS
 
@@ -111,6 +111,7 @@ export function createHttpNewsletterServiceTransport(
 
     const headersResult = await auth.getHeaders()
     if (!headersResult.ok) {
+      // Map all auth failure reasons to the transport cause; never leak tokens.
       return { kind: 'unavailable', cause: 'identity_unavailable' }
     }
 

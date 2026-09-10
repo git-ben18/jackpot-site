@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S4` |
-| Status | S4-A freeze accepted on `main@7e7931d`; S4-C same-origin BFF reimplemented locally |
+| Status | S4-D caller-side workload identity **IMPLEMENTED** on S4-C lineage (`5f3f0db`); not hosted-accepted |
 | S4 start `main` tip inspected | `jackpot-site main@3063eb1eb88419eaa88124694cb64d1fcdf2b3e1` |
 | Accepted S3 descendant baseline | **Not on `main`** — S3-F accepted; S3-G/S3-H not merged (see `_status-S4-A.md`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -37,10 +37,10 @@ Later packets copy from `466bfb0` unless a classified post-baseline source SHA i
 | `src/app/api/newsletter/subscribe/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/subscribe/route.ts` | REIMPLEMENT | Frozen browser DTO; no `consentTextVersion`; fake transport in tests; identity fail-closed until S4-D | `newsletter-bff-contract.test.ts` | source `doi-constants`, `core-proxy` name, `/api/subscribe` |
 | `src/app/api/newsletter/confirm/validate/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/confirm/validate/route.ts` | REIMPLEMENT | Token allowlist; no-store; map `ready_to_confirm` not source `valid`; never log token | same | confirm UI (S4-E) |
 | `src/app/api/newsletter/confirm/route.ts` | `466bfb0` | REIMPLEMENT | `src/app/api/newsletter/confirm/route.ts` | REIMPLEMENT | Distinct consume path; unexpected bodies → `unable_to_confirm` | same | GET never consumes |
-| `src/lib/newsletter/core-proxy.ts` | `466bfb0` | REIMPLEMENT (rename) | `src/lib/newsletter/newsletter-service-client.ts` + `newsletter-canonical-contract.ts` + `newsletter-bff.ts` | REIMPLEMENT + HARDEN (S4-F) | Canonical DTOs; 10s timeout; no website/turnstile forward; sanitizer; **httpStatus consulted for success** (success only on 2xx; non-2xx success-shaped bodies fail closed) | same + httpStatus transport cases | OIDC (S4-D) |
+| `src/lib/newsletter/core-proxy.ts` | `466bfb0` | REIMPLEMENT (rename) | `src/lib/newsletter/newsletter-service-client.ts` + `newsletter-canonical-contract.ts` + `newsletter-bff.ts` | REIMPLEMENT + HARDEN (S4-F) | Canonical DTOs; 10s timeout; no website/turnstile forward; sanitizer; **httpStatus consulted for success**; default auth is `resolveWorkloadIdentityAuth` (S4-D) | same + httpStatus + workload identity cases | hosted OIDC acceptance |
 | `src/lib/newsletter/env.ts` | `466bfb0` | REIMPLEMENT | `src/lib/newsletter/newsletter-service-env.ts` | REIMPLEMENT | Single `NEWSLETTER_SERVICE_BASE_URL`; no `doi-flag` | same | `NEXT_PUBLIC_*` service URL |
 | n/a (target seam) | n/a | n/a | `src/lib/newsletter/newsletter-public-contract.ts` | implemented | Browser-safe statuses/version from S4-A | same | UI (S4-B) |
-| n/a (target seam) | n/a | n/a | `src/lib/newsletter/newsletter-service-auth.ts` | implemented | Deferred fail-closed identity provider | HTTP transport tests | S4-D OIDC |
+| n/a (target seam) | n/a | n/a | `src/lib/newsletter/newsletter-service-auth.ts` | implemented (S4-D) | Vercel OIDC via `@vercel/oidc` + explicit local fake; production/preview forbid fake; `Authorization: Bearer` attachment | `workloadIdentity.test.ts` + HTTP transport cases | hosted OIDC acceptance |
 
 ## Planned S4 source families (not yet adopted)
 
