@@ -6,7 +6,7 @@
 | Packet | [S4-F-security-failure-and-abuse-guardrails.md](./S4-F-security-failure-and-abuse-guardrails.md) |
 | Result | **accepted-with-documented-deferred-hosted-controls** |
 | Base | `main@6d285ec` (includes merged S4-C/D/E + prior HTTP-status remediation) |
-| Tip | `feat/jse-s4-f-security-guardrails@PENDING` |
+| Tip | `feat/jse-s4-f-security-guardrails@b7b99acef74e2db09ac47f09afc762e14201d393` |
 | Prior partial | [_status-S4-F-http-status-remediation.md](./_status-S4-F-http-status-remediation.md) folded into S4-C lineage |
 
 ## Conclusion
@@ -133,6 +133,13 @@ rg "/api/subscribe|email_signups|SUPABASE_SERVICE_ROLE_KEY|getSupabaseAdminClien
 - Turnstile (or equivalent) provider wiring
 
 ## Local verification
+
+| Field | Value |
+|---|---|
+| Date | 2026-09-10 |
+| SHA | `b7b99acef74e2db09ac47f09afc762e14201d393` (`b7b99ac`) |
+| Branch | `feat/jse-s4-f-security-guardrails` |
+| Subject | `Implement S4-F security, failure, and abuse guardrails.` |
 
 | Command | Result |
 |---|---|
