@@ -90,7 +90,7 @@ The exact implementation ledger is `docs/provenance/jse-s3-ledger.md`. S3-B adop
 
 ## JSE-S4 (newsletter acquisition) — freeze only
 
-S4-A recorded inspected upstream SHAs and the verified BFF/service matrix. No S4 runtime files have been adopted yet.
+S4-A recorded inspected upstream SHAs and the verified BFF/service matrix. S4-C reimplemented the same-origin BFF on that freeze (see `docs/tasks/jse-s4/_status-S4-C.md`). Newsletter UI (S4-B) is not yet adopted.
 
 See `docs/provenance/jse-s4-ledger.md` and `docs/tasks/jse-s4/_status-S4-A.md`.
 
