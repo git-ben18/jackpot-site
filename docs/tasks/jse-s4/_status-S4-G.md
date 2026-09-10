@@ -7,7 +7,7 @@
 | Result | **accepted** |
 | Base | `main@e1f7379` (S4-B/C/D/E/F merged) |
 | Tested runtime SHA | `6871c6c354441eec270831e05b2086413931b732` (`6871c6c`) |
-| Evidence tip (this status commit) | recorded below after evidence commit |
+| Evidence tip (this status commit) | `0fcfd3da3fb932219fec401c72ce798f744fd795` (`0fcfd3d`) |
 | Node engines | `>=22` (package.json) |
 
 ## Prerequisites
@@ -105,7 +105,7 @@ Browser DOI/confirm modules do not import server identity/transport/BFF modules 
 | Tested runtime SHA | `6871c6c354441eec270831e05b2086413931b732` (`6871c6c`) |
 | Branch | `feat/jse-s4-g-local-integration-acceptance` |
 | Runtime subject | `Close S4-G blockers: component integration, frozen fixture literals, consume failures.` |
-| Evidence tip | filled in evidence-only commit (status-only; not re-tested as runtime) |
+| Evidence tip | `0fcfd3da3fb932219fec401c72ce798f744fd795` (`0fcfd3d`) — status-only; not re-tested as runtime |
 
 | Command | Result (at tested runtime SHA) |
 |---|---|
