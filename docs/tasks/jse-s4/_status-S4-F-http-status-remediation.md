@@ -18,7 +18,7 @@ Impact: a non-`2xx` upstream response whose JSON happened to match a success DTO
 
 | Method | Rule |
 |---|---|
-| `subscribe` | Success only when `httpStatus` is `2xx` **and** body parses as canonical success. Canonical error bodies accepted only on non-`2xx`. Error-shaped bodies on `2xx` fail closed (`unknown_status`). |
+| `subscribe` | Success only when `httpStatus` is `2xx` **and** body parses as canonical success. Error bodies are further bound to HTTP class (400/413 validation, 429 `rate_limited`). 5xx (including 503 + `invalid_request`) fail closed as `unavailable`. Error-shaped bodies on `2xx` fail closed (`unknown_status`). |
 | `validateConfirmation` | Parsed canonical validate status accepted only on `2xx`. Non-`2xx` → `unavailable` / `unknown_status`. |
 | `confirm` | Parsed canonical consume status accepted only on `2xx`. Non-`2xx` → `unavailable` / `unknown_status`. |
 
@@ -40,6 +40,19 @@ In `src/lib/__tests__/newsletter-bff-contract.test.ts`:
 - S4-D workload identity provider.
 - S4-E confirmation UX.
 - Hosted Acceptance controls.
+
+## Follow-up — HTTP class for subscribe errors (folded into S4-C)
+
+Body shape on non-2xx is not enough. `classifySubscribeHttpResponse()` now requires:
+
+- 2xx + canonical success → success; anything else → unavailable
+- 400 / 413 + approved validation error → `error` / invalid; anything else → unavailable
+- 429 + `rate_limited` → `rate_limited`; anything else → unavailable
+- 401 / 403 → unauthorized / unavailable
+- 5xx → unavailable regardless of body (covers live 503 + `invalid_request` when Supabase is down)
+- other non-2xx → unavailable
+
+This correction lives on `feat/jse-s4-c-same-origin-bff` (PR #19 folded in).
 
 ## Follow-up refinement (same branch)
 

@@ -27,6 +27,27 @@ export const CANONICAL_SUBSCRIBE_ERROR_CODES = [
 export type CanonicalSubscribeErrorCode =
   (typeof CANONICAL_SUBSCRIBE_ERROR_CODES)[number]
 
+export const CANONICAL_SUBSCRIBE_VALIDATION_ERROR_CODES = [
+  'invalid_request',
+  'invalid_email',
+  'consent_required',
+  'age_required',
+] as const
+
+export type CanonicalSubscribeValidationErrorCode =
+  (typeof CANONICAL_SUBSCRIBE_VALIDATION_ERROR_CODES)[number]
+
+export function isCanonicalSubscribeValidationErrorCode(
+  value: unknown,
+): value is CanonicalSubscribeValidationErrorCode {
+  return (
+    typeof value === 'string' &&
+    (CANONICAL_SUBSCRIBE_VALIDATION_ERROR_CODES as readonly string[]).includes(
+      value,
+    )
+  )
+}
+
 export type CanonicalSubscribeInput = {
   email: string
   consentPolicyVersion: typeof NEWSLETTER_CONSENT_POLICY_VERSION

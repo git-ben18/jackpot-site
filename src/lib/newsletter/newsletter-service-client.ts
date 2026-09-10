@@ -13,6 +13,7 @@ import {
   parseCanonicalSubscribeError,
   parseCanonicalSubscribeSuccess,
   parseCanonicalValidateResponse,
+  isCanonicalSubscribeValidationErrorCode,
   type CanonicalConfirmTokenInput,
   type CanonicalConsumeResponse,
   type CanonicalSubscribeError,
@@ -151,19 +152,7 @@ export function createHttpNewsletterServiceTransport(
     async subscribe(input) {
       const posted = await authorizedPost(CANONICAL_SUBSCRIBE_PATH, input)
       if (posted.kind === 'unavailable') return posted
-
-      // Body shape alone is not authority — httpStatus must agree.
-      if (isHttpSuccessStatus(posted.httpStatus)) {
-        const success = parseCanonicalSubscribeSuccess(posted.body)
-        if (success) return { kind: 'success', value: success }
-        // Unknown / error-shaped / malformed 2xx must fail closed.
-        return { kind: 'unavailable', cause: 'unknown_status' }
-      }
-
-      const error = parseCanonicalSubscribeError(posted.body)
-      if (error) return { kind: 'error', error }
-
-      return { kind: 'unavailable', cause: 'unknown_status' }
+      return classifySubscribeHttpResponse(posted.httpStatus, posted.body)
     },
 
     async validateConfirmation(input) {
@@ -196,6 +185,44 @@ export function createHttpNewsletterServiceTransport(
 
 function isHttpSuccessStatus(status: number): boolean {
   return status >= 200 && status < 300
+}
+
+/**
+ * Bind canonical subscribe bodies to HTTP status class (S4-A live service).
+ * Example: HTTP 503 + `{ error: "invalid_request" }` is infrastructure unavailable,
+ * not visitor validation failure.
+ */
+export function classifySubscribeHttpResponse(
+  httpStatus: number,
+  body: unknown,
+): SubscribeTransportResult {
+  if (isHttpSuccessStatus(httpStatus)) {
+    const success = parseCanonicalSubscribeSuccess(body)
+    if (success) return { kind: 'success', value: success }
+    return { kind: 'unavailable', cause: 'unknown_status' }
+  }
+
+  if (httpStatus === 401 || httpStatus === 403) {
+    return { kind: 'unavailable', cause: 'unauthorized' }
+  }
+
+  if (httpStatus === 400 || httpStatus === 413) {
+    const error = parseCanonicalSubscribeError(body)
+    if (error && isCanonicalSubscribeValidationErrorCode(error.error)) {
+      return { kind: 'error', error }
+    }
+    return { kind: 'unavailable', cause: 'unknown_status' }
+  }
+
+  if (httpStatus === 429) {
+    const error = parseCanonicalSubscribeError(body)
+    if (error && error.error === 'rate_limited') {
+      return { kind: 'error', error }
+    }
+    return { kind: 'unavailable', cause: 'unknown_status' }
+  }
+
+  return { kind: 'unavailable', cause: 'unknown_status' }
 }
 
 function isTimeoutError(error: unknown): boolean {

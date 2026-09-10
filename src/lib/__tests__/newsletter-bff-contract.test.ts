@@ -19,6 +19,7 @@ import {
 import { translateBrowserSubscribeToCanonical } from '../newsletter/newsletter-canonical-contract'
 import { createDeferredWorkloadIdentityAuth } from '../newsletter/newsletter-service-auth'
 import {
+  classifySubscribeHttpResponse,
   createHttpNewsletterServiceTransport,
   type NewsletterServiceTransport,
   type SubscribeTransportResult,
@@ -392,7 +393,7 @@ describe('HTTP transport', () => {
     assert.deepEqual(await response.json(), { status: 'unavailable' })
   })
 
-  it('accepts subscribe error bodies only on non-2xx HTTP status', async () => {
+  it('maps HTTP 429 + rate_limited to rate_limited', async () => {
     const transport = createHttpNewsletterServiceTransport({
       env: { NEWSLETTER_SERVICE_BASE_URL: 'https://newsletter.example' },
       auth: {
@@ -417,6 +418,40 @@ describe('HTTP transport', () => {
     if (result.kind === 'error') {
       assert.equal(result.error.error, 'rate_limited')
     }
+  })
+
+  it('treats HTTP 503 + invalid_request as unavailable, not visitor invalid', async () => {
+    const transport = createHttpNewsletterServiceTransport({
+      env: { NEWSLETTER_SERVICE_BASE_URL: 'https://newsletter.example' },
+      auth: {
+        async getHeaders() {
+          return { ok: true, headers: { Authorization: 'Bearer test-only' } }
+        },
+      },
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({
+            ok: false,
+            error: 'invalid_request',
+            message: 'Please try again later.',
+          }),
+          { status: 503 },
+        ),
+    })
+    const result = await transport.subscribe({
+      email: 'visitor@example.com',
+      consentPolicyVersion: NEWSLETTER_CONSENT_POLICY_VERSION,
+      consentAccepted: true,
+      ageConfirmed: true,
+      signupSource: 'newsletter_landing',
+    })
+    assert.equal(result.kind, 'unavailable')
+
+    const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
+      transport,
+    })
+    assert.equal(response.status, 503)
+    assert.deepEqual(await response.json(), { status: 'unavailable' })
   })
 
   it('fails closed when subscribe returns error-shaped body on 2xx', async () => {
@@ -488,6 +523,74 @@ describe('HTTP transport', () => {
     })
     assert.equal(response.status, 503)
     assert.deepEqual(await response.json(), { status: 'unable_to_confirm' })
+  })
+})
+
+describe('classifySubscribeHttpResponse', () => {
+  const successBody = {
+    ok: true as const,
+    status: 'confirmation_if_eligible' as const,
+    message: NEWSLETTER_CHECK_EMAIL_COPY,
+  }
+  const invalidRequest = {
+    ok: false as const,
+    error: 'invalid_request' as const,
+    message: 'Please try again later.',
+  }
+  const rateLimited = {
+    ok: false as const,
+    error: 'rate_limited' as const,
+  }
+
+  it('accepts canonical success only on 2xx', () => {
+    const result = classifySubscribeHttpResponse(200, successBody)
+    assert.equal(result.kind, 'success')
+  })
+
+  it('rejects anything else on 2xx', () => {
+    assert.equal(classifySubscribeHttpResponse(200, invalidRequest).kind, 'unavailable')
+    assert.equal(classifySubscribeHttpResponse(200, rateLimited).kind, 'unavailable')
+  })
+
+  it('accepts approved validation errors only on 400/413', () => {
+    const badRequest = classifySubscribeHttpResponse(400, invalidRequest)
+    assert.equal(badRequest.kind, 'error')
+    const tooLarge = classifySubscribeHttpResponse(413, {
+      ok: false,
+      error: 'invalid_request',
+    })
+    assert.equal(tooLarge.kind, 'error')
+  })
+
+  it('does not treat rate_limited as validation on 400', () => {
+    assert.equal(classifySubscribeHttpResponse(400, rateLimited).kind, 'unavailable')
+  })
+
+  it('accepts rate_limited only on 429', () => {
+    const limited = classifySubscribeHttpResponse(429, rateLimited)
+    assert.equal(limited.kind, 'error')
+    if (limited.kind === 'error') assert.equal(limited.error.error, 'rate_limited')
+    assert.equal(classifySubscribeHttpResponse(429, invalidRequest).kind, 'unavailable')
+  })
+
+  it('maps 401/403 to unauthorized regardless of body', () => {
+    const result = classifySubscribeHttpResponse(503, successBody)
+    assert.equal(result.kind, 'unavailable')
+    const unauthorized = classifySubscribeHttpResponse(401, successBody)
+    assert.equal(unauthorized.kind, 'unavailable')
+    if (unauthorized.kind === 'unavailable') {
+      assert.equal(unauthorized.cause, 'unauthorized')
+    }
+  })
+
+  it('maps 5xx to unavailable regardless of body', () => {
+    assert.equal(classifySubscribeHttpResponse(503, invalidRequest).kind, 'unavailable')
+    assert.equal(classifySubscribeHttpResponse(503, successBody).kind, 'unavailable')
+    assert.equal(classifySubscribeHttpResponse(500, rateLimited).kind, 'unavailable')
+  })
+
+  it('maps other non-2xx to unavailable', () => {
+    assert.equal(classifySubscribeHttpResponse(405, invalidRequest).kind, 'unavailable')
   })
 })
 
