@@ -18,7 +18,7 @@ Mount curated discovery on the approved homepage using the S3-E repository and p
 
 - S3-F privilege matrix is **accepted**
 - Homepage composition remains within the public acquisition/discovery surface
-- Newsletter hero remains out of scope unless already a placeholder; do not implement S4 DOI in this task
+- Newsletter hero remains out of S3-G *implementation* (DOI form/BFF belong to S4). After S4-H, keep the existing DOI hero mounted while adding curated discovery. Do not restore the source `isSupabaseConfigured` banner.
 - **D-S3-08** — production must not silently switch to fixtures on failure
 
 ## Source artifacts (COPY + HARDEN)
@@ -73,15 +73,19 @@ Mount curated discovery on `/`. Do not restore dashboard banner/`isSupabaseConfi
 
 ## Acceptance checklist
 
-- [ ] S3-F was `accepted` before merge intent
-- [ ] Homepage renders curated discovery from `api.v_curated_promo_discovery`
-- [ ] Empty and error states are visitor-safe
-- [ ] No silent production mock fallback
-- [ ] No high-privilege credential used
-- [ ] No tracker/event/dashboard dependency regression
-- [ ] Cache/revalidation documented
-- [ ] `npm run typecheck` and `npm run build` succeed
-- [ ] Provenance updated
+Completed 2026-09-10 — see [`_status-S3-G.md`](./_status-S3-G.md):
+
+- [x] S3-F was `accepted` before merge intent
+- [x] Homepage renders curated discovery from `api.v_curated_promo_discovery`
+- [x] Empty and error states are visitor-safe
+- [x] No silent production mock fallback
+- [x] No high-privilege credential used
+- [x] No tracker/event/dashboard dependency regression
+- [x] Cache/revalidation documented
+- [x] `npm run typecheck` and `npm run build` succeed
+- [x] Provenance updated
+
+Status: [_status-S3-G.md](./_status-S3-G.md)
 
 ## Agent prompt
 

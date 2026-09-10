@@ -561,6 +561,8 @@ A whole-database RLS sweep of tables the site role cannot reach is a migration-r
 
 **Goal:** replace fixture-only proof with the production-shaped published data path while preserving safe visitor behavior.
 
+**Status (2026-09-10):** **Complete** — see `docs/tasks/jse-s3/_status-S3-G.md`. Homepage mounts hardened `CuratedPromoLandingSection` over `getCuratedPromos` / `api.v_curated_promo_discovery` with 300s `unstable_cache` + route `revalidate`, beside the S4 DOI hero.
+
 Tasks:
 
 - connect `CuratedPromoLandingSection` to the target repository;
@@ -727,6 +729,6 @@ This planning document is ready to hand to implementation agents when:
 - [x] S3-A through S3-H exits are defined (including S3-F-RLS when privilege gaps exist);
 - [x] sequential agent task packets exist under `docs/tasks/jse-s3/`;
 - [x] implementation has started (S3-A docs/metadata);
-- [ ] S3 acceptance evidence exists.
+- [x] S3 acceptance evidence exists (`docs/evidence/jse-s3-closeout.md`) — target-repo implementation only; not production authority transfer.
 
-S3 acceptance evidence remains unchecked until S3-H.
+S3-H records target-repo evidence. Hosted/public cutover remains later (S6 / ADR-0004).

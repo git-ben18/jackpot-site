@@ -573,7 +573,7 @@ Exit: target builds without dashboard/legacy application dependencies.
 
 Exit: curated discovery renders from published/read-safe data and fails safely without high-privilege website credentials.
 
-**Target progress (2026-09-03):** S3 planning is accepted (`docs/JSE-S3-CURATED-DISCOVERY-PLAN.md`). S3-A frozen the S2 start SHA `7abb209`, verified source paths at `466bfb0`, and deferred overlaps + analytics for initial S3. Runtime extraction begins at S3-B. Agent packets: `docs/tasks/jse-s3/`.
+**Target progress (2026-09-10):** S3 is **implemented at the target-repo level**. Evidence: `docs/evidence/jse-s3-closeout.md`. Homepage mounts curated discovery from `api.v_curated_promo_discovery` via `getCuratedPromos` (fail-soft, no service-role, no production mock fallback) beside the S4 DOI hero. Event overlaps (D-S3-02) and production analytics (D-S3-03) remain deferred. This is not production public-site acceptance.
 
 ### JSE-S4 — Migrate DOI UX and BFF
 
@@ -755,7 +755,8 @@ Source-side criteria remain satisfied. Target-side criteria:
 - [x] `git-ben18/jackpot-site` exists (`main@95b8348`);
 - [x] this target-side copy of `JSE-001` and the S2 scaffold have merged to `jackpot-site` `main`;
 - [x] S2 scaffold SHA recorded as the runtime bootstrap baseline (`main@7abb209f7bafd0da53d08027e5773eff272fa39a`);
-- [ ] later slices (`JSE-S3`–`JSE-S6`) implemented from this contract.
+- [x] JSE-S3 implemented at the target-repo level (`docs/evidence/jse-s3-closeout.md`); not production-authoritative;
+- [ ] later slices (`JSE-S5`–`JSE-S6`) implemented from this contract. JSE-S4 implementation is present on `main` independently of this S3 closeout.
 
 ---
 

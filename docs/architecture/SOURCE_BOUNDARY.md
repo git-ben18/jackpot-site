@@ -2,7 +2,7 @@
 
 ## Status
 
-Active target implementation boundary. JSE-S2 is **merged/complete** at `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. Docs bootstrap remains `main@95b8348`. JSE-S3 implementation starts from that S2 baseline (current `main` descendant `eb154a7` adds the S3 planning document only).
+Active target implementation boundary. JSE-S2 is **merged/complete** at `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. JSE-S3 is **implemented at the target-repo level** (see `docs/evidence/jse-s3-closeout.md`); not production-authoritative.
 
 ## Purpose
 
