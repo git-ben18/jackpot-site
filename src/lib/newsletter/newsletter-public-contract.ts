@@ -50,6 +50,11 @@ export type BrowserSubscribeRequest = {
   ageConfirmed: true
   consentPolicyVersion: typeof NEWSLETTER_CONSENT_POLICY_VERSION
   signupSource: BrowserSignupSource
+  /**
+   * Browser honeypot (S4-A). Optional; empty/absent to proceed.
+   * Must never be forwarded to the newsletter service.
+   */
+  website?: string
 }
 
 export type BrowserSubscribeResponse = {

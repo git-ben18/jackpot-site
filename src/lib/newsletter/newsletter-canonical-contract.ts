@@ -80,12 +80,14 @@ export type CanonicalConsumeResponse = {
 export function translateBrowserSubscribeToCanonical(
   input: BrowserSubscribeRequest,
 ): CanonicalSubscribeInput {
+  // Explicit field pick — never forward honeypot `website` (or other browser-only keys).
+  const { email, signupSource } = input
   return {
-    email: input.email,
+    email,
     consentPolicyVersion: NEWSLETTER_CONSENT_POLICY_VERSION,
     consentAccepted: true,
     ageConfirmed: true,
-    signupSource: input.signupSource,
+    signupSource,
   }
 }
 

@@ -40,3 +40,8 @@ In `src/lib/__tests__/newsletter-bff-contract.test.ts`:
 - S4-D workload identity provider.
 - S4-E confirmation UX.
 - Hosted Acceptance controls.
+
+## Follow-up refinement (same branch)
+
+`BrowserSubscribeRequest` now includes optional honeypot `website?: string` to match the frozen S4-A browser DTO. `parseBrowserSubscribeBody()` already accepted/stripped it; `translateBrowserSubscribeToCanonical()` continues to omit it via explicit field pick.
+

@@ -100,6 +100,19 @@ describe('parseBrowserSubscribeBody', () => {
   })
 })
 
+describe('parseBrowserSubscribeBody honeypot field', () => {
+  it('accepts empty optional website honeypot and strips it from the parsed value', () => {
+    const parsed = parseBrowserSubscribeBody({
+      ...validSubscribeBody(),
+      website: '',
+    })
+    assert.equal(parsed.ok, true)
+    if (!parsed.ok) return
+    assert.equal(parsed.honeypotTriggered, false)
+    assert.equal('website' in parsed.value, false)
+  })
+})
+
 describe('translateBrowserSubscribeToCanonical', () => {
   it('maps approved browser DTO exactly and omits honeypot', () => {
     const parsed = parseBrowserSubscribeBody(validSubscribeBody())
@@ -114,6 +127,25 @@ describe('translateBrowserSubscribeToCanonical', () => {
       signupSource: 'newsletter_landing',
     })
     assert.equal('website' in canonical, false)
+  })
+
+  it('never forwards website even when present on the browser DTO object', () => {
+    const canonical = translateBrowserSubscribeToCanonical({
+      ...validSubscribeBody(),
+      consentAccepted: true,
+      ageConfirmed: true,
+      consentPolicyVersion: NEWSLETTER_CONSENT_POLICY_VERSION,
+      signupSource: 'newsletter_landing',
+      website: '',
+    })
+    assert.equal('website' in canonical, false)
+    assert.deepEqual(Object.keys(canonical).sort(), [
+      'ageConfirmed',
+      'consentAccepted',
+      'consentPolicyVersion',
+      'email',
+      'signupSource',
+    ])
   })
 })
 
