@@ -148,16 +148,20 @@ None of those are S4-E completion requirements.
 
 ## Acceptance checklist
 
-- [ ] Placeholder route is replaced with bounded confirmation UX.
-- [ ] Validation and confirmation use same-origin BFF only.
-- [ ] Token hygiene requirements are enforced/tested.
-- [ ] Known canonical states map exhaustively to browser-safe states.
-- [ ] Unknown/malformed successful responses fail closed.
-- [ ] Already-complete behavior is safe/idempotent.
-- [ ] No raw backend message or subscriber enumeration is exposed.
-- [ ] No legacy writer/fallback exists.
-- [ ] Focused confirmation tests pass.
-- [ ] No deployment or real confirmation mutation is required/performed.
+Completed 2026-09-10 — see [`_status-S4-E.md`](./_status-S4-E.md):
+
+- [x] Placeholder route is replaced with bounded confirmation UX.
+- [x] Validation and confirmation use same-origin BFF only.
+- [x] Token hygiene requirements are enforced/tested.
+- [x] Known canonical states map exhaustively to browser-safe states.
+- [x] Unknown/malformed successful responses fail closed.
+- [x] Already-complete behavior is safe/idempotent.
+- [x] No raw backend message or subscriber enumeration is exposed.
+- [x] No legacy writer/fallback exists.
+- [x] Focused confirmation tests pass.
+- [x] No deployment or real confirmation mutation is required/performed.
+
+Status: [_status-S4-E.md](./_status-S4-E.md)
 
 ## Agent prompt
 

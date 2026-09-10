@@ -93,3 +93,18 @@ Fake mode is rejected when `NODE_ENV=production` or `VERCEL_ENV` is `preview`/`p
 - [x] Integration locally/static tested
 - [x] Evidence says operational Vercel OIDC is deferred to Hosted Acceptance
 - [x] No deployment performed
+
+## Local verification (PR tip)
+
+| Field | Value |
+|---|---|
+| Date | 2026-09-10 |
+| SHA | `ca40a3b1e6c06a029f5507901cbc199fc239fe4f` (`ca40a3b`) |
+| Branch | `feat/jse-s4-d-workload-identity` (tracks `origin`; based on S4-C `5f3f0db`) |
+| Subject | `Rebase s4-d on sf-c same origin bff :` |
+
+| Command | Result |
+|---|---|
+| `npm test` | **PASS** — 100 tests, 0 fail |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** — Next.js 15.5.25; routes include `/api/newsletter/subscribe`, `/api/newsletter/confirm/validate`, `/api/newsletter/confirm` |
