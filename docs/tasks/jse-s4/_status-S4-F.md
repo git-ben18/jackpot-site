@@ -6,7 +6,7 @@
 | Packet | [S4-F-security-failure-and-abuse-guardrails.md](./S4-F-security-failure-and-abuse-guardrails.md) |
 | Result | **accepted-with-documented-deferred-hosted-controls** |
 | Base | `main@f384674` (S4-B DOI UI merged + S4-C/D/E + prior HTTP-status remediation) |
-| Tip | `feat/jse-s4-f-security-guardrails@PENDING` |
+| Tip | `feat/jse-s4-f-security-guardrails@cc2de57e441f0092eafbd327b7cfeb3874fdcc76` |
 | Prior partial | [_status-S4-F-http-status-remediation.md](./_status-S4-F-http-status-remediation.md) folded into S4-C lineage |
 | S4-B | [_status-S4-B.md](./_status-S4-B.md) — DOI hero/form present on `/` |
 
@@ -168,15 +168,15 @@ Public DOI enablement must not proceed until ACQ-05 freezes privacy URL/version.
 | Field | Value |
 |---|---|
 | Date | 2026-09-10 |
-| SHA | `PENDING` |
-| Branch | `feat/jse-s4-f-security-guardrails` |
-| Subject | pending after closure commit |
+| SHA | `cc2de57e441f0092eafbd327b7cfeb3874fdcc76` (`cc2de57`) |
+| Branch | `feat/jse-s4-f-security-guardrails` (rebased on `main@f384674`) |
+| Subject | `Close S4-F against main with S4-B and fail-closed acquisition gate.` |
 
 | Command | Result |
 |---|---|
-| `npm test` | pending |
-| `npm run typecheck` | pending |
-| `npm run build` | pending |
+| `npm test` | **PASS** — 141 tests, 0 fail |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** — `/` DOI hero + newsletter BFF routes present |
 
 ## Checklist
 
