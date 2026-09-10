@@ -2,6 +2,7 @@
  * COPY + HARDEN from rewards-maxxing-frontend confirm-client.ts
  * Hardening: frozen browser `{ status }` contract (not source `outcome` / `valid`).
  * Same-origin BFF only. Never log the token.
+ * HTTP success narrowed to 200 to match S4-C BFF responses (202 not accepted).
  */
 import {
   CONFIRM_CONSUME_BROWSER_STATUSES,
@@ -40,6 +41,11 @@ function statusFromBody(body: unknown): string | null {
   return body.status
 }
 
+/** S4-C confirm BFF returns 200 on mapped success — do not treat 202 as success. */
+function isAcceptedConfirmHttpStatus(status: number): boolean {
+  return status === 200
+}
+
 /**
  * POST-only validate. Empty token → invalid_or_unusable without network.
  * Unknown/malformed 2xx → unable_to_confirm (never ready_to_confirm).
@@ -66,7 +72,7 @@ export async function validateConfirmToken(
   if (res.status === 400 || res.status === 404 || res.status === 410) {
     return 'invalid_or_unusable'
   }
-  if (res.status !== 200 && res.status !== 202) return 'unable_to_confirm'
+  if (!isAcceptedConfirmHttpStatus(res.status)) return 'unable_to_confirm'
 
   const status = statusFromBody(await readJson(res))
   if (status && VALIDATE_STATUS_SET.has(status)) {
@@ -102,7 +108,7 @@ export async function consumeConfirmToken(
   if (res.status === 400 || res.status === 404 || res.status === 410) {
     return 'invalid_or_unusable'
   }
-  if (res.status !== 200 && res.status !== 202) return 'unable_to_confirm'
+  if (!isAcceptedConfirmHttpStatus(res.status)) return 'unable_to_confirm'
 
   const status = statusFromBody(await readJson(res))
   if (status && CONSUME_STATUS_SET.has(status)) {
