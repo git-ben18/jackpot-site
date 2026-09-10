@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Slice | `JSE-S4` |
-| Status | S4-D caller-side workload identity **IMPLEMENTED** on S4-C lineage (`5f3f0db`); not hosted-accepted |
+| Status | S4-E confirmation UX implemented locally on S4-C/D lineage; hosted confirmation E2E deferred |
 | S4 start `main` tip inspected | `jackpot-site main@3063eb1eb88419eaa88124694cb64d1fcdf2b3e1` |
 | Accepted S3 descendant baseline | **Not on `main`** — S3-F accepted; S3-G/S3-H not merged (see `_status-S4-A.md`) |
 | Functional source baseline | `rewards-maxxing-frontend@466bfb065a9c34010ee0f0de22b419299259fa46` |
@@ -41,6 +41,9 @@ Later packets copy from `466bfb0` unless a classified post-baseline source SHA i
 | `src/lib/newsletter/env.ts` | `466bfb0` | REIMPLEMENT | `src/lib/newsletter/newsletter-service-env.ts` | REIMPLEMENT | Single `NEWSLETTER_SERVICE_BASE_URL`; no `doi-flag` | same | `NEXT_PUBLIC_*` service URL |
 | n/a (target seam) | n/a | n/a | `src/lib/newsletter/newsletter-public-contract.ts` | implemented | Browser-safe statuses/version from S4-A | same | UI (S4-B) |
 | n/a (target seam) | n/a | n/a | `src/lib/newsletter/newsletter-service-auth.ts` | implemented (S4-D) | Vercel OIDC via `@vercel/oidc` + explicit local fake; production/preview forbid fake; `Authorization: Bearer` attachment | `workloadIdentity.test.ts` + HTTP transport cases | hosted OIDC acceptance |
+| `src/lib/newsletter/confirm-client.ts` | `466bfb0` | COPY + HARDEN | `src/lib/newsletter/confirm-client.ts` | COPY + HARDEN | Frozen `{ status }` (`ready_to_confirm`); reject source `valid`/`outcome`; same-origin only; empty token no-fetch | `newsletter-confirm-ux.test.ts` | doi-constants |
+| `src/components/newsletter/NewsletterConfirmClient.tsx` | `466bfb0` | COPY + HARDEN | `src/components/newsletter/NewsletterConfirmClient.tsx` | COPY + HARDEN | Token hygiene + replaceState; consume lock; bounded copy | same | analytics, doi-constants |
+| n/a | n/a | implemented | `src/lib/newsletter/newsletter-confirm-copy.ts` | implemented | Visitor-safe confirm strings only | same | EC-05A email sender provisioning |
 
 ## Planned S4 source families (not yet adopted)
 
@@ -49,9 +52,7 @@ Later packets copy from `466bfb0` unless a classified post-baseline source SHA i
 | `src/components/InlineNewsletterHero.tsx` | `466bfb0` | REIMPLEMENT | `src/components/InlineNewsletterHero.tsx` | DOI-only; no legacy writer |
 | `src/components/newsletter/DoiNewsletterSignupForm.tsx` | `466bfb0` | COPY + HARDEN | `src/components/newsletter/DoiNewsletterSignupForm.tsx` | EC-05A copy; same-origin client |
 | `src/lib/newsletter/subscribe-client.ts` | `466bfb0` | COPY + HARDEN | `src/lib/newsletter/subscribe-client.ts` | Same-origin only |
-| `src/lib/newsletter/confirm-client.ts` | `466bfb0` | COPY + HARDEN | `src/lib/newsletter/confirm-client.ts` | Map `ready_to_confirm`, not source `valid` |
-| `src/components/newsletter/NewsletterConfirmClient.tsx` | `466bfb0` | COPY + HARDEN | S4-E | Token hygiene |
-| `src/lib/newsletter/doi-constants.ts` | `466bfb0` | COPY + HARDEN after reconcile | target constants module | Replace version/copy/sources from EC-05A + service |
+| `src/lib/newsletter/doi-constants.ts` | `466bfb0` | COPY + HARDEN after reconcile | target constants module | Replace version/copy/sources from EC-05A + service; confirm copy already covered by `newsletter-confirm-copy.ts` |
 
 ## Excluded (must not enter the S4 graph)
 
