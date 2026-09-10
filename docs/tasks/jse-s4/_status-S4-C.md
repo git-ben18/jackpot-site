@@ -16,7 +16,7 @@
 | `src/lib/newsletter/newsletter-canonical-contract.ts` | implemented (explicit translation + upstream parse) |
 | `src/lib/newsletter/newsletter-service-env.ts` | REIMPLEMENT (`NEWSLETTER_SERVICE_BASE_URL` only) |
 | `src/lib/newsletter/newsletter-service-auth.ts` | implemented seam; default fail-closed until S4-D |
-| `src/lib/newsletter/newsletter-service-client.ts` | REIMPLEMENT of source `core-proxy` fetch (new name) |
+| `src/lib/newsletter/newsletter-service-client.ts` | REIMPLEMENT of source `core-proxy` fetch (new name); S4-F harden: callers consult `httpStatus` (see `_status-S4-F-http-status-remediation.md`) |
 | `src/lib/newsletter/newsletter-bff.ts` | implemented pipeline |
 | `src/app/api/newsletter/subscribe/route.ts` | REIMPLEMENT |
 | `src/app/api/newsletter/confirm/validate/route.ts` | REIMPLEMENT |

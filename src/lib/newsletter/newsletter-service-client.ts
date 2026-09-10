@@ -152,8 +152,13 @@ export function createHttpNewsletterServiceTransport(
       const posted = await authorizedPost(CANONICAL_SUBSCRIBE_PATH, input)
       if (posted.kind === 'unavailable') return posted
 
-      const success = parseCanonicalSubscribeSuccess(posted.body)
-      if (success) return { kind: 'success', value: success }
+      // Body shape alone is not authority — httpStatus must agree.
+      if (isHttpSuccessStatus(posted.httpStatus)) {
+        const success = parseCanonicalSubscribeSuccess(posted.body)
+        if (success) return { kind: 'success', value: success }
+        // Unknown / error-shaped / malformed 2xx must fail closed.
+        return { kind: 'unavailable', cause: 'unknown_status' }
+      }
 
       const error = parseCanonicalSubscribeError(posted.body)
       if (error) return { kind: 'error', error }
@@ -165,6 +170,10 @@ export function createHttpNewsletterServiceTransport(
       const posted = await authorizedPost(CANONICAL_CONFIRM_VALIDATE_PATH, input)
       if (posted.kind === 'unavailable') return posted
 
+      if (!isHttpSuccessStatus(posted.httpStatus)) {
+        return { kind: 'unavailable', cause: 'unknown_status' }
+      }
+
       const parsed = parseCanonicalValidateResponse(posted.body)
       if (parsed) return { kind: 'success', value: parsed }
       return { kind: 'unavailable', cause: 'unknown_status' }
@@ -174,11 +183,19 @@ export function createHttpNewsletterServiceTransport(
       const posted = await authorizedPost(CANONICAL_CONFIRM_PATH, input)
       if (posted.kind === 'unavailable') return posted
 
+      if (!isHttpSuccessStatus(posted.httpStatus)) {
+        return { kind: 'unavailable', cause: 'unknown_status' }
+      }
+
       const parsed = parseCanonicalConsumeResponse(posted.body)
       if (parsed) return { kind: 'success', value: parsed }
       return { kind: 'unavailable', cause: 'unknown_status' }
     },
   }
+}
+
+function isHttpSuccessStatus(status: number): boolean {
+  return status >= 200 && status < 300
 }
 
 function isTimeoutError(error: unknown): boolean {

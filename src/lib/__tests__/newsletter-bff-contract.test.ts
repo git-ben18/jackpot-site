@@ -324,6 +324,139 @@ describe('HTTP transport', () => {
       assert.equal(result.cause, 'malformed')
     }
   })
+
+  it('ignores success-shaped subscribe bodies when HTTP status is not 2xx', async () => {
+    const successBody = {
+      ok: true,
+      status: 'confirmation_if_eligible',
+      message: NEWSLETTER_CHECK_EMAIL_COPY,
+    }
+    const transport = createHttpNewsletterServiceTransport({
+      env: { NEWSLETTER_SERVICE_BASE_URL: 'https://newsletter.example' },
+      auth: {
+        async getHeaders() {
+          return { ok: true, headers: { Authorization: 'Bearer test-only' } }
+        },
+      },
+      fetchImpl: async () =>
+        new Response(JSON.stringify(successBody), { status: 500 }),
+    })
+    const result = await transport.subscribe({
+      email: 'visitor@example.com',
+      consentPolicyVersion: NEWSLETTER_CONSENT_POLICY_VERSION,
+      consentAccepted: true,
+      ageConfirmed: true,
+      signupSource: 'newsletter_landing',
+    })
+    assert.equal(result.kind, 'unavailable')
+    if (result.kind === 'unavailable') {
+      assert.equal(result.cause, 'unknown_status')
+    }
+
+    const response = await handleSubscribePost(jsonRequest(validSubscribeBody()), {
+      transport,
+    })
+    assert.equal(response.status, 503)
+    assert.deepEqual(await response.json(), { status: 'unavailable' })
+  })
+
+  it('accepts subscribe error bodies only on non-2xx HTTP status', async () => {
+    const transport = createHttpNewsletterServiceTransport({
+      env: { NEWSLETTER_SERVICE_BASE_URL: 'https://newsletter.example' },
+      auth: {
+        async getHeaders() {
+          return { ok: true, headers: { Authorization: 'Bearer test-only' } }
+        },
+      },
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({ ok: false, error: 'rate_limited', message: 'slow down' }),
+          { status: 429 },
+        ),
+    })
+    const result = await transport.subscribe({
+      email: 'visitor@example.com',
+      consentPolicyVersion: NEWSLETTER_CONSENT_POLICY_VERSION,
+      consentAccepted: true,
+      ageConfirmed: true,
+      signupSource: 'newsletter_landing',
+    })
+    assert.equal(result.kind, 'error')
+    if (result.kind === 'error') {
+      assert.equal(result.error.error, 'rate_limited')
+    }
+  })
+
+  it('fails closed when subscribe returns error-shaped body on 2xx', async () => {
+    const transport = createHttpNewsletterServiceTransport({
+      env: { NEWSLETTER_SERVICE_BASE_URL: 'https://newsletter.example' },
+      auth: {
+        async getHeaders() {
+          return { ok: true, headers: { Authorization: 'Bearer test-only' } }
+        },
+      },
+      fetchImpl: async () =>
+        new Response(
+          JSON.stringify({ ok: false, error: 'invalid_email' }),
+          { status: 200 },
+        ),
+    })
+    const result = await transport.subscribe({
+      email: 'visitor@example.com',
+      consentPolicyVersion: NEWSLETTER_CONSENT_POLICY_VERSION,
+      consentAccepted: true,
+      ageConfirmed: true,
+      signupSource: 'newsletter_landing',
+    })
+    assert.equal(result.kind, 'unavailable')
+    if (result.kind === 'unavailable') {
+      assert.equal(result.cause, 'unknown_status')
+    }
+  })
+
+  it('ignores confirm validate success-shaped bodies on non-2xx', async () => {
+    const transport = createHttpNewsletterServiceTransport({
+      env: { NEWSLETTER_SERVICE_BASE_URL: 'https://newsletter.example' },
+      auth: {
+        async getHeaders() {
+          return { ok: true, headers: { Authorization: 'Bearer test-only' } }
+        },
+      },
+      fetchImpl: async () =>
+        new Response(JSON.stringify({ status: 'ready_to_confirm' }), {
+          status: 503,
+        }),
+    })
+    const result = await transport.validateConfirmation({ token: TOKEN })
+    assert.equal(result.kind, 'unavailable')
+    if (result.kind === 'unavailable') {
+      assert.equal(result.cause, 'unknown_status')
+    }
+  })
+
+  it('ignores confirm consume success-shaped bodies on non-2xx', async () => {
+    const transport = createHttpNewsletterServiceTransport({
+      env: { NEWSLETTER_SERVICE_BASE_URL: 'https://newsletter.example' },
+      auth: {
+        async getHeaders() {
+          return { ok: true, headers: { Authorization: 'Bearer test-only' } }
+        },
+      },
+      fetchImpl: async () =>
+        new Response(JSON.stringify({ status: 'success' }), { status: 500 }),
+    })
+    const result = await transport.confirm({ token: TOKEN })
+    assert.equal(result.kind, 'unavailable')
+    if (result.kind === 'unavailable') {
+      assert.equal(result.cause, 'unknown_status')
+    }
+
+    const response = await handleConfirmConsumePost(jsonRequest({ token: TOKEN }), {
+      transport,
+    })
+    assert.equal(response.status, 503)
+    assert.deepEqual(await response.json(), { status: 'unable_to_confirm' })
+  })
 })
 
 describe('source boundary', () => {
