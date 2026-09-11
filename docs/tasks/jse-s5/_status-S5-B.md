@@ -7,7 +7,7 @@
 | Result | **accepted** (local shell REIMPLEMENT; no deployment / authority transfer) |
 | Depends on | S5-A accepted — [_status-S5-A.md](./_status-S5-A.md) (`45e9029` start SHA; EX-S5-A-01 closed) |
 | Base | `feat/jse-s5-b-initial-commit` fast-forwarded to include S5-A tip `abdfc6e` |
-| Tested runtime SHA | filled after implementation commit |
+| Tested runtime SHA | `349d1c59d5daa17da31680b350bada36808c17f0` (`349d1c5`) |
 | Provenance | [jse-s5-ledger.md](../../provenance/jse-s5-ledger.md) |
 
 ## Runtime artifacts
@@ -68,7 +68,7 @@ Shell is **REIMPLEMENT** from S5-A allowlist / JSE-003, not a copy of source `la
 | Field | Value |
 |---|---|
 | Date | 2026-09-11 |
-| Tested runtime SHA | pending implementation commit |
+| Tested runtime SHA | `349d1c59d5daa17da31680b350bada36808c17f0` (`349d1c5`) |
 | Branch | `feat/jse-s5-b-initial-commit` |
 
 | Command | Result |
