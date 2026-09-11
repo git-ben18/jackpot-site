@@ -88,9 +88,13 @@ JSE-003 identifies the source families expected to seed curated-discovery work, 
 
 The exact implementation ledger is `docs/provenance/jse-s3-ledger.md`. S3-B adopted public DTO / mapper / helpers / fixtures / tests at source `466bfb0`. S3-C adopted leaf presentation (EmptyState, EvidenceBlock, SignalList) plus minimal Tailwind tooling. S3-D adopted composed/hardened presentation. S3-E reimplemented the low-privilege repository. S3-G mounts hardened `CuratedPromoLandingSection` on `/` beside the S4 DOI hero.
 
-## JSE-S4 (newsletter acquisition)
+## JSE-S4 (newsletter acquisition) — implementation complete, not hosted
 
-S4 implementation is complete at the target-repo level (see `docs/provenance/jse-s4-ledger.md` and `docs/tasks/jse-s4/S4-H-implementation-closeout.md`). Homepage composition mounts `InlineNewsletterHero` with curated discovery. Hosted/public DOI enablement remains a later Hosted Acceptance gate.
+S4-A froze inspected upstream SHAs and the verified BFF/service matrix. S4-B through S4-G implemented DOI UI, same-origin BFF, caller-side workload identity, confirmation UX, security guardrails, and local integration. S4-H closed the slice as **IMPLEMENTATION COMPLETE**.
+
+This is **not** hosted OIDC acceptance, public DOI enablement, or production-authority transfer. Homepage composition mounts `InlineNewsletterHero` beside S3 curated discovery.
+
+See `docs/tasks/jse-s4/_status-S4-H.md`, `docs/provenance/jse-s4-ledger.md`, and `docs/tasks/jse-s4/_status-S4-A.md`.
 
 ## Explicit non-provenance
 
