@@ -12,6 +12,9 @@ import type {
   ConfirmConsumeBrowserStatus,
   ConfirmValidateBrowserStatus,
 } from './newsletter-public-contract'
+import { shouldEmitNewsletterSubscriptionConfirmed } from '../telemetry/first-release-telemetry-contract'
+import type { FirstReleaseTelemetrySeam } from '../telemetry/first-release-telemetry-seam'
+import { getFirstReleaseTelemetry } from '../telemetry/first-release-telemetry-runtime'
 
 export type ConfirmPhase =
   | 'loading'
@@ -26,6 +29,8 @@ export type ConfirmPhase =
 export type NewsletterConfirmControllerDeps = ConfirmClientDeps & {
   getSearch?: () => string
   replaceUrl?: (path: string) => void
+  /** Optional injected telemetry (tests). Defaults to runtime singleton. */
+  telemetry?: FirstReleaseTelemetrySeam
 }
 
 const TERMINAL_CLEAR_TOKEN_PHASES = new Set<ConfirmPhase>([
@@ -68,6 +73,7 @@ export function createNewsletterConfirmController(
         window.history.replaceState(null, '', path)
       }
     })
+  const telemetry = deps.telemetry ?? getFirstReleaseTelemetry()
 
   function notify(): void {
     for (const listener of listeners) listener()
@@ -131,6 +137,9 @@ export function createNewsletterConfirmController(
       setPhase('submitting')
       const status = await consumeConfirmToken(heldToken, deps)
       if (disposed || currentGeneration !== generation) return
+      if (shouldEmitNewsletterSubscriptionConfirmed(status)) {
+        telemetry.emitApprovedEvent('newsletter_subscription_confirmed', {})
+      }
       setPhase(status)
     },
     async retry() {

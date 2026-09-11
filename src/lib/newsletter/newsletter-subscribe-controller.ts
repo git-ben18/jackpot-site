@@ -7,6 +7,12 @@ import {
   type SubscribeClientDeps,
 } from './subscribe-client'
 import type { BrowserSignupSource } from './newsletter-public-contract'
+import {
+  shouldEmitNewsletterSubscribeRequested,
+  type TelemetrySignupSourceV1,
+} from '../telemetry/first-release-telemetry-contract'
+import type { FirstReleaseTelemetrySeam } from '../telemetry/first-release-telemetry-seam'
+import { getFirstReleaseTelemetry } from '../telemetry/first-release-telemetry-runtime'
 
 export type SubscribePhase =
   | 'idle'
@@ -28,6 +34,8 @@ export type NewsletterSubscribeControllerDeps = SubscribeClientDeps & {
   signupSource?: BrowserSignupSource
   /** Client-side kill-switch seam; false prevents network mutation. */
   isAcquisitionEnabled?: () => boolean
+  /** Optional injected telemetry (tests). Defaults to runtime singleton. */
+  telemetry?: FirstReleaseTelemetrySeam
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -60,6 +68,7 @@ export function createNewsletterSubscribeController(
   const listeners = new Set<() => void>()
   const signupSource = deps.signupSource ?? 'newsletter_landing'
   const isAcquisitionEnabled = deps.isAcquisitionEnabled ?? (() => true)
+  const telemetry = deps.telemetry ?? getFirstReleaseTelemetry()
 
   function notify(): void {
     for (const listener of listeners) listener()
@@ -154,6 +163,14 @@ export function createNewsletterSubscribeController(
         },
         deps,
       )
+      if (
+        shouldEmitNewsletterSubscribeRequested(status) &&
+        signupSource === 'newsletter_landing'
+      ) {
+        telemetry.emitApprovedEvent('newsletter_subscribe_requested', {
+          signupSource: signupSource as TelemetrySignupSourceV1,
+        })
+      }
       setPhase(status)
     },
     resetToIdle() {

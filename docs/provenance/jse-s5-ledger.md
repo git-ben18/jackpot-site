@@ -34,3 +34,13 @@
 | `docs/tasks/jse-s5/s5-telemetry-contract.md` | none (S5-A candidates) | n/a | REIMPLEMENT | implemented | Seven events; triggers; typed payloads; filterValue=rendered vocab; requested≠confirmed | `first-release-telemetry-contract.test.ts` | provider, DB schema, legacy session/click logs |
 | `src/lib/telemetry/first-release-telemetry-contract.ts` | none | n/a | implemented | machine contract | Closed event→payload TS shapes; vocab membership validators; sink omit identity | same | network transport, GTM, useTracker |
 | `docs/tasks/jse-s5/_status-S5-E.md` | n/a | n/a | evidence | accepted | Contract-only; DB-W4 handoff facts | same | tables/RPCs/RLS |
+
+## S5-F — telemetry implementation guardrails
+
+| Target path | Source path | Source SHA | Disposition | Target disposition | Notes | Tests | Excluded |
+|---|---|---|---|---|---|---|---|
+| `src/lib/telemetry/first-release-telemetry-seam.ts` | none | n/a | REIMPLEMENT | implemented | `emitApprovedEvent` validate → S5-D → transport; fail-soft | `first-release-telemetry-implementation.test.ts` | provider, DB, legacy log routes |
+| `src/lib/telemetry/first-release-telemetry-transport.ts` | none | n/a | implemented | noop/recording/throwing | Explicit kinds; storage-independent | same | GTM, Supabase write, service-role |
+| `src/lib/telemetry/first-release-telemetry-runtime.ts` | none | n/a | implemented | default singleton | unknown consent + disabled sink + noop | same | pre-consent replay queue |
+| curated + newsletter controllers / widgets | none | n/a | adapted | instrumented | Seven S5-E events only | same | entire DTO / sourceUrl / email / token |
+| `docs/tasks/jse-s5/_status-S5-F.md` | n/a | n/a | evidence | accepted-with-provider-activation-deferred | BLOCKED-DB-W4 durable sink | same | migrations/RLS |

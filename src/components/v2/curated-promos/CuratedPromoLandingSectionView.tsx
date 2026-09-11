@@ -3,6 +3,7 @@ import React from 'react'
 import type { GetCuratedPromosResult } from '../../../lib/server/curatedPromoRepository'
 import CuratedPromoDiscoveryWidget from './CuratedPromoDiscoveryWidget'
 import CuratedPromoEmptyState from './CuratedPromoEmptyState'
+import CuratedPromoEmptyStateTelemetryMount from './CuratedPromoEmptyStateTelemetryMount'
 
 export type CuratedPromoLandingSectionViewProps = {
   result: GetCuratedPromosResult
@@ -34,7 +35,10 @@ export function CuratedPromoLandingSectionView({
 
         <div className="min-h-[80px] bg-white px-3 pb-2 pt-3">
           {!result.ok ? (
-            <CuratedPromoEmptyState message={result.message} />
+            <>
+              <CuratedPromoEmptyStateTelemetryMount reason="fail_soft" />
+              <CuratedPromoEmptyState message={result.message} />
+            </>
           ) : (
             <CuratedPromoDiscoveryWidget
               promos={result.promos}

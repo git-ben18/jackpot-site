@@ -83,7 +83,7 @@ describe("S3-D composed curated presentation", () => {
     assert.match(html, /Upcoming pool party promo/);
   });
 
-  it("renders DetailSheet source CTA without analytics wiring", () => {
+  it("renders DetailSheet source CTA without legacy click logging", () => {
     assert.ok(fixturePromo.sourceUrl);
 
     const html = renderToStaticMarkup(
@@ -98,6 +98,7 @@ describe("S3-D composed curated presentation", () => {
     assert.match(html, /noopener noreferrer/);
     assert.equal(html.includes("Related events"), false);
     assert.equal(html.includes("/api/log-click"), false);
+    assert.equal(html.includes("useTracker"), false);
   });
 
   it("omits source CTA when fixture DTO has no sourceUrl", () => {

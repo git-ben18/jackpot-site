@@ -12,10 +12,21 @@ import type { CuratedPromoFilters } from '../../../types/curatedPromos'
 
 /** Source-kind chips omitted — see JSE-S3 plan / source product decisions. */
 
+/** Explicit chip toggle detail for S5-F telemetry (one event per interaction). */
+export type CuratedPromoFilterToggleDetail = {
+  filterKey: 'brand' | 'marketSlug' | 'signalCategory' | 'signalType'
+  action: 'apply' | 'clear'
+  /** Clicked chip value; included for both apply and clear. */
+  filterValue: string
+}
+
 type CuratedPromoFilterChipsProps = {
   filters: CuratedPromoFilters
   options: CuratedPromoFilterOptions
-  onFilterChange: (next: CuratedPromoFilters) => void
+  onFilterChange: (
+    next: CuratedPromoFilters,
+    toggle?: CuratedPromoFilterToggleDetail,
+  ) => void
   variant?: 'default' | 'landing'
 }
 
@@ -209,13 +220,23 @@ export default function CuratedPromoFilterChips({
   onFilterChange,
   variant = 'default',
 }: CuratedPromoFilterChipsProps) {
-  const toggle = <K extends keyof CuratedPromoFilters>(key: K, value: CuratedPromoFilters[K]) => {
-    const nextValue = filters[key] === value ? null : value
-    const next: CuratedPromoFilters = { ...filters, [key]: nextValue }
+  const toggle = (
+    key: CuratedPromoFilterToggleDetail['filterKey'],
+    value: string,
+  ) => {
+    const clearing = filters[key] === value
+    const next: CuratedPromoFilters = {
+      ...filters,
+      [key]: clearing ? null : value,
+    }
     if (key === 'signalCategory') {
       next.signalType = null
     }
-    onFilterChange(next)
+    onFilterChange(next, {
+      filterKey: key,
+      action: clearing ? 'clear' : 'apply',
+      filterValue: value,
+    })
   }
 
   const hasPlaceChips = options.brands.length > 0 || options.marketSlugs.length > 0

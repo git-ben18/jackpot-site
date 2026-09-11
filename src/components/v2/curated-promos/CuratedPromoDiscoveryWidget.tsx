@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { CuratedPromoDiscoveryDTO } from '../../../types/curatedPromos'
 import {
   EMPTY_CURATED_PROMO_FILTERS,
@@ -10,10 +10,14 @@ import {
   buildCuratedPromoFilterOptions,
   filterCuratedPromos,
 } from '../../../lib/curated-promo-display'
+import { getFirstReleaseTelemetry } from '../../../lib/telemetry/first-release-telemetry-runtime'
+import type { FirstReleaseTelemetrySeam } from '../../../lib/telemetry/first-release-telemetry-seam'
 import CuratedPromoCarousel from './CuratedPromoCarousel'
 import CuratedPromoDetailSheet from './CuratedPromoDetailSheet'
 import CuratedPromoEmptyState from './CuratedPromoEmptyState'
-import CuratedPromoFilterChips from './CuratedPromoFilterChips'
+import CuratedPromoFilterChips, {
+  type CuratedPromoFilterToggleDetail,
+} from './CuratedPromoFilterChips'
 
 export type CuratedPromoDiscoveryWidgetProps = {
   promos: CuratedPromoDiscoveryDTO[]
@@ -25,6 +29,8 @@ export type CuratedPromoDiscoveryWidgetProps = {
   showHeader?: boolean
   /** `landing` uses the compact homepage chip-strip styling. */
   chipStripVariant?: 'default' | 'landing'
+  /** Optional injected telemetry seam (tests). Defaults to runtime singleton. */
+  telemetry?: FirstReleaseTelemetrySeam
 }
 
 export default function CuratedPromoDiscoveryWidget({
@@ -35,26 +41,82 @@ export default function CuratedPromoDiscoveryWidget({
   subtitle = 'Filter by place or offer type.',
   showHeader = true,
   chipStripVariant = 'default',
+  telemetry: telemetryProp,
 }: CuratedPromoDiscoveryWidgetProps) {
+  const telemetry = telemetryProp ?? getFirstReleaseTelemetry()
   const [filters, setFilters] = useState<CuratedPromoFilters>({
     ...EMPTY_CURATED_PROMO_FILTERS,
     brand: defaultBrand,
     marketSlug: defaultMarketSlug,
   })
   const [selectedPromo, setSelectedPromo] = useState<CuratedPromoDiscoveryDTO | null>(null)
+  const discoveryViewEmitted = useRef(false)
+  const emptyReasonsEmitted = useRef(new Set<string>())
 
   const filterOptions = useMemo(
     () => buildCuratedPromoFilterOptions(promos, filters),
     [promos, filters],
   )
 
-  const visiblePromos = useMemo(() => filterCuratedPromos(promos, filters), [promos, filters])
+  const visiblePromos = useMemo(
+    () => filterCuratedPromos(promos, filters),
+    [promos, filters],
+  )
 
-  const handleFilterChange = (next: CuratedPromoFilters) => {
+  useEffect(() => {
+    if (promos.length === 0) {
+      if (!emptyReasonsEmitted.current.has('published_empty')) {
+        emptyReasonsEmitted.current.add('published_empty')
+        telemetry.emitApprovedEvent('curated_promo_empty_state_view', {
+          reason: 'published_empty',
+        })
+      }
+      return
+    }
+
+    if (!discoveryViewEmitted.current) {
+      discoveryViewEmitted.current = true
+      telemetry.emitApprovedEvent('curated_promo_discovery_view', {})
+    }
+
+    if (visiblePromos.length === 0) {
+      if (!emptyReasonsEmitted.current.has('filter_empty')) {
+        emptyReasonsEmitted.current.add('filter_empty')
+        telemetry.emitApprovedEvent('curated_promo_empty_state_view', {
+          reason: 'filter_empty',
+        })
+      }
+    }
+  }, [promos.length, visiblePromos.length, telemetry])
+
+  const handleFilterChange = (
+    next: CuratedPromoFilters,
+    toggle?: CuratedPromoFilterToggleDetail,
+  ) => {
     setFilters(next)
+    if (!toggle) return
+    telemetry.emitApprovedEvent(
+      'curated_promo_filter_click',
+      {
+        filterKey: toggle.filterKey,
+        action: toggle.action,
+        filterValue: toggle.filterValue,
+      },
+      {
+        filterVocabulary: {
+          brands: filterOptions.brands,
+          marketSlugs: filterOptions.marketSlugs,
+          signalCategories: filterOptions.signalCategories,
+          signalTypesForCategory: filterOptions.signalTypesForCategory,
+        },
+      },
+    )
   }
 
   const handleOpenPromo = (promo: CuratedPromoDiscoveryDTO) => {
+    telemetry.emitApprovedEvent('curated_promo_card_open', {
+      promoId: promo.promoId,
+    })
     setSelectedPromo(promo)
   }
 
@@ -99,7 +161,11 @@ export default function CuratedPromoDiscoveryWidget({
       )}
 
       {selectedPromo && (
-        <CuratedPromoDetailSheet promo={selectedPromo} onClose={() => setSelectedPromo(null)} />
+        <CuratedPromoDetailSheet
+          promo={selectedPromo}
+          onClose={() => setSelectedPromo(null)}
+          telemetry={telemetry}
+        />
       )}
     </div>
   )
