@@ -7,7 +7,7 @@
 | Result | **accepted-with-provider-activation-deferred** |
 | Depends on | S5-D + S5-E accepted |
 | Base | `main@2bed903` (S5-E merged) |
-| Tested runtime SHA | _(fill after commit)_ |
+| Tested runtime SHA | `a0bcdb01056c583523217aea316f673042fdab20` (`a0bcdb0`) |
 | Branch | `feat/jse-s5-f-implemenetation-gaurdrails` |
 | Contract | [s5-telemetry-contract.md](./s5-telemetry-contract.md) / S5-E |
 | Consent | [_status-S5-D.md](./_status-S5-D.md) |
@@ -84,9 +84,11 @@ trigger; curated semantics; transport failure nonblocking; legacy audit; explici
 
 | Check | Result |
 |---|---|
-| `npm test` | _(pending)_ |
-| `npm run typecheck` | _(pending)_ |
-| `npm run build` | _(pending)_ |
+| `npm test` | **PASS** — 203 tests / 53 suites / 0 fail |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+
+Tested at runtime SHA `a0bcdb01056c583523217aea316f673042fdab20`.
 
 ## Acceptance checklist
 
