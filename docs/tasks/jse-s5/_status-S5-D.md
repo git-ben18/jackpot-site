@@ -106,9 +106,9 @@ No decorative banner. Shell Privacy links remain `/privacy`. Newsletter DOI cons
 
 | Command | Result |
 |---|---|
-| ``npm test`` | **PASS** - 182 tests, 0 fail |
-| ``npm run typecheck`` | **PASS** |
-| ``npm run build`` | **PASS** |
+| `npm test` | **PASS** - 182 tests, 0 fail |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
 
 ## Checklist
 
