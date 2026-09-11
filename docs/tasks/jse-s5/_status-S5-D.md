@@ -7,7 +7,7 @@
 | Result | **accepted** (fail-closed in-memory consent; no banner; no cookie write) |
 | Depends on | S5-A accepted — [_status-S5-A.md](./_status-S5-A.md) D-S5-05 / D-S5-A-06/07 |
 | Base | `main@62e4326` (S5-B merged) |
-| Tested runtime SHA | pending implementation commit |
+| Tested runtime SHA | `879418ac6814ca0a0979e6538b98f351a4508fdd` (`879418a`) |
 | Branch | `feat/jse-s5-d-consent` |
 | Provenance | [jse-s5-ledger.md](../../provenance/jse-s5-ledger.md) |
 
@@ -101,14 +101,14 @@ No decorative banner. Shell Privacy links remain `/privacy`. Newsletter DOI cons
 | Field | Value |
 |---|---|
 | Date | 2026-09-11 |
-| Tested runtime SHA | pending implementation commit |
+| Tested runtime SHA | `879418ac6814ca0a0979e6538b98f351a4508fdd` (`879418a`) |
 | Branch | `feat/jse-s5-d-consent` |
 
 | Command | Result |
 |---|---|
-| `npm test` | pending |
-| `npm run typecheck` | pending |
-| `npm run build` | pending |
+| ``npm test`` | **PASS** - 182 tests, 0 fail |
+| ``npm run typecheck`` | **PASS** |
+| ``npm run build`` | **PASS** |
 
 ## Checklist
 
