@@ -2,11 +2,11 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-09-10 |
+| Date | 2026-09-11 |
 | Packet | [S5-A-baseline-authority-policy-freeze.md](./S5-A-baseline-authority-policy-freeze.md) |
 | Plan | [JSE-S5-PUBLIC-SHELL-PRIVACY-TELEMETRY-PLAN.md](./JSE-S5-PUBLIC-SHELL-PRIVACY-TELEMETRY-PLAN.md) |
 | Result | **accepted** — docs/analysis freeze only, with recorded program exceptions |
-| Inspected `main` tip / S5 start SHA | `jackpot-site@3bd1fe0347ace48d7a9ab8fdddb80cca066999f5` (`3bd1fe0`) |
+| Inspected `main` tip / S5 start SHA | `jackpot-site@45e9029ee987677354726671d77fd1a755e009f1` (`45e9029`) |
 | Inventory | [s5-shell-and-global-runtime-inventory.md](./s5-shell-and-global-runtime-inventory.md) |
 | Telemetry template | [s5-telemetry-contract-template.md](./s5-telemetry-contract-template.md) |
 
@@ -14,15 +14,17 @@ This freeze replaces historical planning SHAs with values inspected when this pa
 
 S5-A performed **no runtime or production changes**.
 
+Rebase note (2026-09-11): this branch was replayed onto `main@45e9029` after S4-H closeout landed via PR #28. The earlier draft freeze at `3bd1fe0` and EX-S5-A-01 are superseded by this document.
+
 ---
 
 ## Program exceptions (explicit)
 
-S5-A Depends-on allows an exception for DB-W3-F/G. S4-H closeout is authored but unmerged. Runtime lineage is still a main descendant of merged S3-H and S4-G.
+S5-A Depends-on required S4-H merged (or an exception) and allowed an exception for DB-W3-F/G. S4-H is now on `main`. Runtime lineage is a main descendant of merged S3-H, S4-G, and the S4-H closeout port.
 
 | ID | Gap | Exception |
 |---|---|---|
-| EX-S5-A-01 | S4-H closeout not on `main` | S5 start is `main@3bd1fe0`, descendant of S4-G merge `359ecfb` (PR #24) and S3-G/H merge `47c911c` (PR #25). Unmerged closeout lives at `origin/docs/jse-s4-h-implementation-closeout@1f16ef6`. S5-A does not merge that branch. S4 **runtime** lineage is not unclear. Merge S4-H separately; this packet does not substitute for it. |
+| EX-S5-A-01 | ~~S4-H closeout not on `main`~~ | **CLOSED** — S4-H closeout is on `main` via PR #28 (`45e9029` / implementation commit `ee565cf`). Port evidence: [`_status-S4-H.md`](../jse-s4/_status-S4-H.md). The stale draft branch `docs/jse-s4-h-implementation-closeout@1f16ef6` remains **do-not-merge** historical material and is not the S5 start SHA. |
 | EX-S5-A-02 | DB-W3-F/G not closed | S5 consumes only the already-accepted W3-E contract `api.v_curated_promo_discovery`. Public-view retirement is out of S5 scope. Do not reopen DB-W3 migrations from this repo. |
 
 ---
@@ -33,15 +35,17 @@ S5-A Depends-on allows an exception for DB-W3-F/G. S4-H closeout is authored but
 
 | Item | SHA / status |
 |---|---|
-| S5 start (`main` HEAD) | `3bd1fe0347ace48d7a9ab8fdddb80cca066999f5` — Merge PR #27 (S5 task packets) |
+| S5 start (`main` HEAD) | `45e9029ee987677354726671d77fd1a755e009f1` — Merge PR #28 (S4-H closeout port) |
 | Contains S5 planning docs | PR #26 `4d128af` + PR #27 `3bd1fe0` |
+| S4-H closeout on `main` | PR #28 `45e9029`; port commit `ee565cf`; status [`_status-S4-H.md`](../jse-s4/_status-S4-H.md) |
 | S3-G/H merge | `47c911c` Merge PR #25; implementation commit `3a6b66e` |
 | S3-H evidence | [`_status-S3-H.md`](../jse-s3/_status-S3-H.md), [`docs/evidence/jse-s3-closeout.md`](../../evidence/jse-s3-closeout.md) |
 | S4-G merge | `359ecfb` Merge PR #24 |
 | S4-G tested runtime | `6871c6c354441eec270831e05b2086413931b732` |
 | S4-A freeze (historical) | recorded in [`_status-S4-A.md`](../jse-s4/_status-S4-A.md) |
 | S2 baseline (historical) | `main@7abb209f7bafd0da53d08027e5773eff272fa39a` |
-| Unmerged S4-H evidence | `1f16ef6` on `docs/jse-s4-h-implementation-closeout` — **not** an S5 start SHA |
+| Superseded draft S5 start | `3bd1fe0` — pre–S4-H-port tip; **do not** reuse as S5 start |
+| Historical S4-H draft branch | `1f16ef6` on `docs/jse-s4-h-implementation-closeout` — do-not-merge; superseded by PR #28 port |
 
 Current first-release routes on this SHA: `/`, `/privacy` (scaffold), `/newsletter/confirm`, plus the three newsletter BFF POSTs. Homepage mounts S4 DOI hero then S3 curated discovery.
 
@@ -334,7 +338,7 @@ JSE-S5 does not depend on DB-W4 completion.
 | Footer DOI | frozen homepage-only | product; reopen only with explicit approval |
 | `/terms` | frozen omit | legal/product |
 | Session ID | frozen omit | measurement; requires explicit requirement |
-| S4-H merge | unmerged evidence branch | operators; not an S5 runtime blocker (EX-S5-A-01) |
+| S4-H merge | **closed** on `main` via PR #28 (`45e9029`) | operators; EX-S5-A-01 closed |
 | W3-F/G public-view retirement | pending | DB wave / `core`; not an S5 blocker (EX-S5-A-02) |
 | Hosted OIDC / SendGrid / DNS / public DOI | out of S5 | Hosted Acceptance / ADR-0003/0004 |
 

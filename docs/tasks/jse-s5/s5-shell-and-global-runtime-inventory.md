@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-09-10 |
-| Inspected target SHA | `jackpot-site@3bd1fe0347ace48d7a9ab8fdddb80cca066999f5` |
+| Date | 2026-09-11 |
+| Inspected target SHA | `jackpot-site@45e9029ee987677354726671d77fd1a755e009f1` |
 | Authority | [_status-S5-A.md](./_status-S5-A.md) |
 | Scope | Reachability from `src/app/layout.tsx`, plus the first-release public route/env surface S5 wraps |
 
