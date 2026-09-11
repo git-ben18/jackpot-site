@@ -96,6 +96,12 @@ This is **not** hosted OIDC acceptance, public DOI enablement, or production-aut
 
 See `docs/tasks/jse-s4/_status-S4-H.md`, `docs/provenance/jse-s4-ledger.md`, and `docs/tasks/jse-s4/_status-S4-A.md`.
 
+## JSE-S5 (public shell / privacy / telemetry) — in progress
+
+S5-A froze the start SHA, shell allowlist, Privacy/ACQ-05 blocks, consent boundary, and telemetry candidates. S5-B REIMPLEMENTs the first-release root shell from that allowlist (header/footer/consent seam) without copying source `layout.tsx` / `Navbar.tsx` / `Footer.tsx`.
+
+See `docs/tasks/jse-s5/_status-S5-A.md`, `docs/provenance/jse-s5-ledger.md`, and `docs/tasks/jse-s5/S5-B-public-shell-allowlist.md`.
+
 ## Explicit non-provenance
 
 The following source surfaces are not implementation inputs merely because they exist in the source application:
