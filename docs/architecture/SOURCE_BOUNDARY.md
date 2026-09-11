@@ -2,7 +2,7 @@
 
 ## Status
 
-Active target implementation boundary. JSE-S2 is **merged/complete** at `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. JSE-S3 is **implemented at the target-repo level** (see `docs/evidence/jse-s3-closeout.md`); not production-authoritative.
+Active target implementation boundary. JSE-S2 is **merged/complete** at `main@7abb209f7bafd0da53d08027e5773eff272fa39a`. JSE-S3 is **implemented at the target-repo level** (see `docs/evidence/jse-s3-closeout.md`). JSE-S4 newsletter acquisition is **IMPLEMENTATION COMPLETE** locally (`docs/tasks/jse-s4/_status-S4-H.md`). None of these transfer production public-site or newsletter-workload authority.
 
 ## Purpose
 

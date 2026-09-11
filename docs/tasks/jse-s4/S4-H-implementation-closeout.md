@@ -183,17 +183,17 @@ The closeout should identify responsibilities without duplicating their document
 
 ## Acceptance checklist
 
-- [ ] S4-G is accepted with exact tested SHA.
-- [ ] All S4-A through S4-G evidence is linked.
-- [ ] Provenance ledger is complete.
-- [ ] Target route/dependency/credential inventory is complete.
-- [ ] Legacy `/api/subscribe` and legacy persistence are absent from active runtime.
-- [ ] Security and local integration evidence is summarized.
-- [ ] No unresolved implementation blocker is mislabeled as a hosted deferral.
-- [ ] Closeout prominently says `IMPLEMENTATION COMPLETE` rather than `PRODUCTION READY`.
-- [ ] Hosted/OIDC/Supabase/SendGrid/public-cutover assertions are explicitly excluded.
-- [ ] Future Hosted Acceptance handoff is documented.
-- [ ] No deployment, production mutation, or public enablement is performed as part of S4-H.
+- [x] S4-G is accepted with exact tested SHA.
+- [x] All S4-A through S4-G evidence is linked.
+- [x] Provenance ledger is complete.
+- [x] Target route/dependency/credential inventory is complete.
+- [x] Legacy `/api/subscribe` and legacy persistence are absent from active runtime.
+- [x] Security and local integration evidence is summarized.
+- [x] No unresolved implementation blocker is mislabeled as a hosted deferral.
+- [x] Closeout prominently says `IMPLEMENTATION COMPLETE` rather than `PRODUCTION READY`.
+- [x] Hosted/OIDC/Supabase/SendGrid/public-cutover assertions are explicitly excluded.
+- [x] Future Hosted Acceptance handoff is documented.
+- [x] No deployment, production mutation, or public enablement is performed as part of S4-H.
 
 ## Agent prompt
 
