@@ -7,7 +7,7 @@
 | Result | **accepted** (local shell REIMPLEMENT; no deployment / authority transfer) |
 | Depends on | S5-A accepted — [_status-S5-A.md](./_status-S5-A.md) (`45e9029` start SHA; EX-S5-A-01 closed) |
 | Base | `feat/jse-s5-b-initial-commit` fast-forwarded to include S5-A tip `abdfc6e` |
-| Tested runtime SHA | `349d1c59d5daa17da31680b350bada36808c17f0` (`349d1c5`) |
+| Tested runtime SHA | `ccf32530e9152514c261063d049fea8ce9e77fde` (`ccf3253`) |
 | Provenance | [jse-s5-ledger.md](../../provenance/jse-s5-ledger.md) |
 
 ## Runtime artifacts
@@ -69,12 +69,12 @@ Shell is **REIMPLEMENT** from S5-A allowlist / JSE-003, not a copy of source `la
 | Field | Value |
 |---|---|
 | Date | 2026-09-11 |
-| Tested runtime SHA | `349d1c59d5daa17da31680b350bada36808c17f0` (`349d1c5`) |
+| Tested runtime SHA | `ccf32530e9152514c261063d049fea8ce9e77fde` (`ccf3253`) |
 | Branch | `feat/jse-s5-b-initial-commit` |
 
 | Command | Result |
 |---|---|
-| `npm test` | **PASS** — 168 tests, 0 fail |
+| `npm test` | **PASS** - 169 tests, 0 fail |
 | `npm run typecheck` | **PASS** |
 | `npm run build` | **PASS** — intentional first-release routes only |
 
