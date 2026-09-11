@@ -103,6 +103,7 @@ describe('S5-B SiteHeader / SiteFooter presentation', () => {
     const footerHrefs = hrefsFromMarkup(footer)
 
     assert.match(header, new RegExp(SHELL_BRAND_NAME))
+    assert.match(header, /aria-label="Primary"/)
     assert.ok(headerHrefs.includes('/'))
     assert.ok(headerHrefs.includes('/privacy'))
     assert.ok(footerHrefs.includes('/privacy'))
@@ -153,6 +154,14 @@ describe('S5-B RootLayout composition', () => {
     assert.match(layoutSource, /PublicShell/)
     assert.match(layoutSource, /SHELL_METADATA/)
     assert.doesNotMatch(layoutSource, /Construction and staging only/)
+  })
+
+  it('removes visitor-facing Hosted Acceptance diagnostic from the homepage', () => {
+    const page = readFileSync(join(rootDir, 'src/app/page.tsx'), 'utf8')
+    assert.match(page, /InlineNewsletterHero/)
+    assert.match(page, /CuratedPromoLandingSection/)
+    assert.doesNotMatch(page, /Hosted Acceptance/)
+    assert.doesNotMatch(page, /local DOI signup UI/)
   })
 })
 

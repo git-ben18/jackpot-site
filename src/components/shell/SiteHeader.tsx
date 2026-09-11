@@ -13,7 +13,7 @@ import {
 export default function SiteHeader() {
   return (
     <header className="shell-header">
-      <div className="shell-inner shell-nav">
+      <nav className="shell-inner shell-nav" aria-label="Primary">
         {SHELL_PRIMARY_NAV.map((item) =>
           item.kind === 'brand' ? (
             <Link
@@ -29,7 +29,7 @@ export default function SiteHeader() {
             </Link>
           ),
         )}
-      </div>
+      </nav>
     </header>
   )
 }

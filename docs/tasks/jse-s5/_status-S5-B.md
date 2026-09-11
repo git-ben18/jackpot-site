@@ -31,10 +31,11 @@ docs/tasks/jse-s5/_status-S5-B.md
 |---|---|---|
 | Root layout | Inline header/main/footer in `layout.tsx` | Allowlisted `PublicShell` composition |
 | Metadata description | Construction/staging claim | Product-facing copy from `SHELL_METADATA` (no authority overclaim) |
-| Header nav | `/` brand + `/privacy` | Same allowlist via `SiteHeader` |
+| Header nav | `/` brand + `/privacy` | Same allowlist via semantic `<nav aria-label="Primary">` |
 | Footer | Construction copy + Privacy | Brand line + Privacy legal nav; no DOI form |
 | Consent | absent | Empty hidden `#site-consent-root` seam for S5-D |
 | Footer DOI | none (matches homepage-only) | unchanged (`SHELL_FOOTER_DOI = homepage-only`) |
+| Homepage body | DOI hero + Hosted Acceptance diagnostic + curated section | DOI hero + curated section only (diagnostic removed; no replacement marketing copy) |
 
 ## Route / link allowlist
 
@@ -77,18 +78,26 @@ Shell is **REIMPLEMENT** from S5-A allowlist / JSE-003, not a copy of source `la
 | `npm run typecheck` | **PASS** |
 | `npm run build` | **PASS** — intentional first-release routes only |
 
+## Review corrections (post-initial acceptance)
+
+- Primary header navigation uses `<nav aria-label="Primary">` (not a non-landmark `div`).
+- Visitor-facing Hosted Acceptance / local-implementation diagnostic removed from `src/app/page.tsx` without inventing replacement marketing copy.
+
 ## Checklist
 
 - [x] Root shell rebuilt from S5-A allowlist
 - [x] Header/footer contain only approved routes
+- [x] Primary header nav is a semantic landmark (`aria-label="Primary"`)
 - [x] Privacy linked
 - [x] Footer DOI matches homepage-only freeze
 - [x] No ExploreFAB, SessionInit, or legacy tracker mounted globally
 - [x] No legacy acquisition fallback enters the shell
 - [x] Construction-facing shell copy removed/replaced without authority overclaim
+- [x] Homepage Hosted Acceptance diagnostic paragraph removed (no replacement marketing copy)
 - [x] Accessibility landmarks (header/nav/main/footer) and route/import tests pass
 - [x] Provenance recorded
 - [x] No deployment/public authority implied
+- [x] No telemetry/provider, consent cookie/banner, footer DOI, excluded globals, or new routes
 
 ## Conclusion
 
