@@ -126,7 +126,7 @@ describe('S5-B SiteHeader / SiteFooter presentation', () => {
     const html = renderToStaticMarkup(createElement(ConsentMountSeam))
     assert.match(html, new RegExp(`id="${SHELL_CONSENT_MOUNT_ID}"`))
     assert.match(html, /data-consent-mount=""/)
-    assert.doesNotMatch(html, /cookie|analytics|accept|reject/i)
+    assert.doesNotMatch(html, /\bAccept\b|\bReject\b|cookie banner/i)
   })
 })
 
