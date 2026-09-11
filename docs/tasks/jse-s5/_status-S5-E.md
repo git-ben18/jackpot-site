@@ -7,7 +7,7 @@
 | Result | **accepted** (contract + static tests only; no provider/DB) |
 | Depends on | S5-A accepted — [_status-S5-A.md](./_status-S5-A.md) D-S5-06..11 |
 | Base | `main@8988e2f` (S5-D merged) |
-| Tested runtime SHA | _(evidence commit pending)_ |
+| Tested runtime SHA | `d6e900ca514feb2a0a3ebef2ff5ea0492cd69c8f` (`d6e900c`) |
 | Branch | `feat/jse-s5-e-first-release-telemtry` |
 | Contract artifact | [s5-telemetry-contract.md](./s5-telemetry-contract.md) |
 | Machine contract | `src/lib/telemetry/first-release-telemetry-contract.ts` |
@@ -106,9 +106,11 @@ session omit; sink disabled-by-default; prohibited fields absent.
 
 | Check | Result |
 |---|---|
-| `npm test` | _(pending)_ |
-| `npm run typecheck` | _(pending)_ |
-| `npm run build` | _(pending)_ |
+| `npm test` | **PASS** — 188 tests / 49 suites / 0 fail |
+| `npm run typecheck` | **PASS** |
+| `npm run build` | **PASS** |
+
+Tested at runtime SHA `d6e900ca514feb2a0a3ebef2ff5ea0492cd69c8f`.
 
 ## Out of scope (explicit)
 
@@ -126,7 +128,7 @@ migrations, deployment, public authority transfer — deferred to S5-F / DB-W4 /
 - [x] Consent class per event
 - [x] Failure behavior nonblocking
 - [x] DB-W4 handoff is contract facts only
-- [x] Contract tests pass (fill evidence after verification)
+- [x] Contract tests pass (188 / 188 at `d6e900c`)
 
 ## Conclusion
 
