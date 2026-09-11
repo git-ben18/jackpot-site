@@ -7,11 +7,22 @@
 | Result | **accepted** (contract + static tests only; no provider/DB) |
 | Depends on | S5-A accepted — [_status-S5-A.md](./_status-S5-A.md) D-S5-06..11 |
 | Base | `main@8988e2f` (S5-D merged) |
-| Tested runtime SHA | working tree on `main@8988e2f` (fill commit SHA after land) |
+| Tested runtime SHA | _(evidence commit pending)_ |
 | Branch | `feat/jse-s5-e-first-release-telemtry` |
 | Contract artifact | [s5-telemetry-contract.md](./s5-telemetry-contract.md) |
 | Machine contract | `src/lib/telemetry/first-release-telemetry-contract.ts` |
 | Provenance | [jse-s5-ledger.md](../../provenance/jse-s5-ledger.md) |
+
+## Review corrections applied
+
+```text
+filterValue: membership in currently-rendered public CuratedPromoFilterOptions vocabulary
+             (not charset-only). Multi-word brands allowed when rendered.
+clear: includes the clicked bounded filterValue (same as apply).
+payload schemas: closed TypeScript event→payload shapes for S5-F consumption.
+discovery_view trigger: non-empty CuratedPromoDiscoveryWidget first committed/mounted
+             render from successful landing, once per page/widget lifetime.
+```
 
 ## Frozen event list (closed)
 
@@ -29,15 +40,15 @@ Schema family `jackpot-site.first_release_telemetry` / version `v1`. No expansio
 
 ## Per-event summary
 
-| Event | Business question | Exact trigger (summary) |
-|---|---|---|
-| `curated_promo_discovery_view` | Did discovery render published promos? | Landing success render with `ok && promos.length > 0` |
-| `curated_promo_filter_click` | Which filters do visitors toggle? | Filter chip toggle (`brand` / `marketSlug` / `signalCategory` / `signalType`) |
-| `curated_promo_card_open` | Which promos do visitors open? | Card open for a rendered promo |
-| `curated_promo_empty_state_view` | Is discovery empty or fail-soft? | EmptyState render with bounded `reason` |
-| `curated_promo_source_click` | Do visitors leave to verify source? | DetailSheet “View source” click |
-| `newsletter_subscribe_requested` | Did subscribe BFF return `accepted`? | Browser maps HTTP 200 + `{ status: "accepted" }` |
-| `newsletter_subscription_confirmed` | Did confirm consume succeed newly? | Consume terminal `success` only |
+| Event | Business question | Exact trigger (summary) | Payload shape |
+|---|---|---|---|
+| `curated_promo_discovery_view` | Did discovery render published promos? | Non-empty widget first mount from successful landing | `{}` |
+| `curated_promo_filter_click` | Which filters do visitors toggle? | Filter chip toggle | `filterKey` + `action` + vocabulary-bound `filterValue` |
+| `curated_promo_card_open` | Which promos do visitors open? | Card open for a rendered promo | `promoId` |
+| `curated_promo_empty_state_view` | Is discovery empty or fail-soft? | EmptyState render | `reason` enum |
+| `curated_promo_source_click` | Do visitors leave to verify source? | DetailSheet “View source” click | `promoId` |
+| `newsletter_subscribe_requested` | Did subscribe BFF return `accepted`? | Browser maps HTTP 200 + `{ status: "accepted" }` | `signupSource: newsletter_landing` |
+| `newsletter_subscription_confirmed` | Did confirm consume succeed newly? | Consume terminal `success` only | `{}` |
 
 ## Consent / identity / sink / failure
 
@@ -63,13 +74,14 @@ confirm "success" does not emit requested
 
 Global denylist includes email / email hash / confirmation token / access token / session id /
 sourceUrl / pageUrl / referrer / userAgent / ip / authorization / free-form metadata /
-full error bodies. Payload keys are allowlisted per event; token values are charset-bounded.
+full error bodies. Payloads are typed per event; filterValue is vocabulary-membership-bound,
+not free text.
 
 ## DB-W4 handoff (contract facts only)
 
 ```text
 seven event names + schema_version v1
-payload allowlists / enums in s5-telemetry-contract.md
+payload TypeScript shapes / enums in first-release-telemetry-contract.ts
 consent_class: optional_non_essential
 cardinality/dedupe per event in contract doc
 identity: omit
@@ -86,8 +98,17 @@ Do not recreate legacy `session_logs` / `click_logs` / `interaction_logs` by def
 src/lib/__tests__/first-release-telemetry-contract.test.ts
 ```
 
-Proves: closed allowlist; bounded payloads; prohibited fields absent; requested≠confirmed;
-session omit; sink disabled-by-default; no URL/referrer/raw-error fields in allowlists.
+Proves: closed allowlist; typed payload schemas; multi-word brand vocabulary membership;
+bounded filter/empty/signup enums; promoId rules; zero-key events; requested≠confirmed;
+session omit; sink disabled-by-default; prohibited fields absent.
+
+## Verification
+
+| Check | Result |
+|---|---|
+| `npm test` | _(pending)_ |
+| `npm run typecheck` | _(pending)_ |
+| `npm run build` | _(pending)_ |
 
 ## Out of scope (explicit)
 
@@ -98,17 +119,17 @@ migrations, deployment, public authority transfer — deferred to S5-F / DB-W4 /
 
 - [x] Event list frozen and minimal (seven)
 - [x] Every event has exact trigger and business question
-- [x] Payload schemas allowlisted and bounded
+- [x] Payload schemas allowlisted, typed, and bounded
 - [x] Requested != confirmed explicit
 - [x] Email/token/raw URL/referrer prohibited
 - [x] Session identity omit
 - [x] Consent class per event
 - [x] Failure behavior nonblocking
 - [x] DB-W4 handoff is contract facts only
-- [x] Contract tests pass
+- [x] Contract tests pass (fill evidence after verification)
 
 ## Conclusion
 
-**accepted** — first-release telemetry meaning is frozen. S5-F may implement a provider
-only against this contract and S5-D consent; production sink remains disabled until
-explicit sink authority.
+**accepted** — first-release telemetry meaning and closed payload TypeScript shapes are frozen.
+S5-F may implement a provider only against this contract and S5-D consent; production sink
+remains disabled until explicit sink authority.

@@ -31,6 +31,6 @@
 
 | Target path | Source path | Source SHA | Disposition | Target disposition | Notes | Tests | Excluded |
 |---|---|---|---|---|---|---|---|
-| `docs/tasks/jse-s5/s5-telemetry-contract.md` | none (S5-A candidates) | n/a | REIMPLEMENT | implemented | Seven events; triggers; allowlists; requested≠confirmed | `first-release-telemetry-contract.test.ts` | provider, DB schema, legacy session/click logs |
-| `src/lib/telemetry/first-release-telemetry-contract.ts` | none | n/a | implemented | machine contract | Closed names; payload keys; emit predicates; sink omit identity | same | network transport, GTM, useTracker |
+| `docs/tasks/jse-s5/s5-telemetry-contract.md` | none (S5-A candidates) | n/a | REIMPLEMENT | implemented | Seven events; triggers; typed payloads; filterValue=rendered vocab; requested≠confirmed | `first-release-telemetry-contract.test.ts` | provider, DB schema, legacy session/click logs |
+| `src/lib/telemetry/first-release-telemetry-contract.ts` | none | n/a | implemented | machine contract | Closed event→payload TS shapes; vocab membership validators; sink omit identity | same | network transport, GTM, useTracker |
 | `docs/tasks/jse-s5/_status-S5-E.md` | n/a | n/a | evidence | accepted | Contract-only; DB-W4 handoff facts | same | tables/RPCs/RLS |
