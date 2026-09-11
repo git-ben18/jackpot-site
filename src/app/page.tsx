@@ -12,11 +12,6 @@ export default function HomePage() {
   return (
     <>
       <InlineNewsletterHero />
-      <p className="muted">
-        Public acquisition enablement remains a Hosted Acceptance / release gate.
-        This page exercises the local DOI signup UI against the same-origin BFF
-        and curated discovery against the published API contract.
-      </p>
       <div className="mt-8">
         <CuratedPromoLandingSection />
       </div>

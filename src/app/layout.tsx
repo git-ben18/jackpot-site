@@ -1,39 +1,30 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import "./globals.css";
+import type { Metadata } from 'next'
+
+import PublicShell from '../components/shell/PublicShell'
+import { SHELL_METADATA } from '../lib/shell/shell-allowlist'
+import './globals.css'
+
+/**
+ * REIMPLEMENT — first-release root shell from the S5-A allowlist.
+ * Not a copy of rewards-maxxing-frontend layout.tsx.
+ * Keeps session/explore/cookie/tracker globals and acquisition fallbacks out.
+ */
 
 export const metadata: Metadata = {
-  title: "Jackpot Homie",
-  description: "Public Jackpot Homie site. Construction and staging only.",
-};
+  title: SHELL_METADATA.title,
+  description: SHELL_METADATA.description,
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en">
       <body>
-        <header className="shell-header">
-          <div className="shell-inner shell-nav">
-            <Link className="shell-brand" href="/">
-              Jackpot Homie
-            </Link>
-            <Link href="/privacy">Privacy</Link>
-          </div>
-        </header>
-        <main className="shell-main">{children}</main>
-        <footer className="shell-footer">
-          <div className="shell-inner">
-            <p className="muted">
-              Construction/staging target. Not the production public site or
-              newsletter BFF.
-            </p>
-            <Link href="/privacy">Privacy</Link>
-          </div>
-        </footer>
+        <PublicShell>{children}</PublicShell>
       </body>
     </html>
-  );
+  )
 }
