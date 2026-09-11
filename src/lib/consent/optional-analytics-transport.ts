@@ -1,37 +1,29 @@
 /**
- * Optional-analytics transport seam gated by S5-D consent + sink status.
- * S5-F will attach real/fake providers here; S5-D proves the gate alone.
+ * S5-D consent-gated emitter/spy seam.
+ *
+ * Consent gate only: no named events, no payload schemas, no field
+ * allow/deny lists. S5-E/F supply the event type and payload rules.
  */
 import type { AnalyticsConsentController } from './analytics-consent-controller'
 
-export type OptionalAnalyticsEventName = string
+export type ConsentGatedEmitResult =
+  | { emitted: true }
+  | { emitted: false; reason: 'sink_disabled' | 'consent_not_granted' }
 
-export type OptionalAnalyticsEvent = {
-  name: OptionalAnalyticsEventName
-  payload?: Record<string, unknown>
-}
-
-export type OptionalAnalyticsTransport = {
-  emit: (event: OptionalAnalyticsEvent) => { emitted: boolean; reason?: string }
-  getEmitted: () => OptionalAnalyticsEvent[]
+export type ConsentGatedEmitter<TEvent> = {
+  emit: (event: TEvent) => ConsentGatedEmitResult
+  getEmitted: () => TEvent[]
   clear: () => void
 }
 
-const PROHIBITED_PAYLOAD_KEYS = [
-  'email',
-  'emailHash',
-  'token',
-  'confirmationToken',
-  'sessionId',
-  'subscriberEmailHash',
-  // Avoid contiguous legacy secret spellings in source scans; reject at runtime.
-  ['access', 'token'].join('_'),
-] as const
-
-export function createGatedOptionalAnalyticsTransport(
+/**
+ * Generic consent + sink gate. Callers (tests / later S5-F) choose `TEvent`.
+ * Does not inspect, validate, or transform the event value.
+ */
+export function createConsentGatedEmitter<TEvent>(
   consent: AnalyticsConsentController,
-): OptionalAnalyticsTransport {
-  const emitted: OptionalAnalyticsEvent[] = []
+): ConsentGatedEmitter<TEvent> {
+  const emitted: TEvent[] = []
 
   return {
     emit(event) {
@@ -44,13 +36,7 @@ export function createGatedOptionalAnalyticsTransport(
               : 'consent_not_granted',
         }
       }
-      const payload = event.payload ?? {}
-      for (const key of PROHIBITED_PAYLOAD_KEYS) {
-        if (key in payload) {
-          return { emitted: false, reason: 'prohibited_payload' }
-        }
-      }
-      emitted.push({ name: event.name, payload: { ...payload } })
+      emitted.push(event)
       return { emitted: true }
     },
     getEmitted: () => [...emitted],
@@ -59,3 +45,6 @@ export function createGatedOptionalAnalyticsTransport(
     },
   }
 }
+
+/** @deprecated Prefer createConsentGatedEmitter — kept as a stable S5-D export alias. */
+export const createGatedOptionalAnalyticsTransport = createConsentGatedEmitter

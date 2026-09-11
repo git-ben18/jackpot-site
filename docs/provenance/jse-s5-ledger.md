@@ -25,4 +25,4 @@
 |---|---|---|---|---|---|---|---|
 | `src/lib/consent/analytics-consent.ts` | none (S5-A freeze) | n/a | REIMPLEMENT | implemented | Vocabulary + sink + blocked persistence | `analytics-consent.test.ts` | source CookieBanner / cookie_consent |
 | `src/lib/consent/analytics-consent-controller.ts` | none | n/a | implemented | in-memory only | No cookie write; fail-closed hydrate | same | session_id, email_signup |
-| `src/lib/consent/optional-analytics-transport.ts` | useTracker EXCLUDE | n/a | REIMPLEMENT seam | gated fake transport | canEmit = accepted ∧ sink authorized | same | pre-consent queue, GTM |
+| `src/lib/consent/optional-analytics-transport.ts` | useTracker EXCLUDE | n/a | REIMPLEMENT seam | generic consent-gated emitter | `createConsentGatedEmitter<TEvent>`; no event/payload schema | same | pre-consent queue, GTM, taxonomy |

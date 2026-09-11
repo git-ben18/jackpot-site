@@ -1,5 +1,5 @@
 /**
- * S5-D analytics consent enforcement tests.
+ * S5-D analytics consent enforcement tests (consent gate only).
  */
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
@@ -20,10 +20,12 @@ import {
   parseAnalyticsConsentState,
 } from '../consent/analytics-consent'
 import { createAnalyticsConsentController } from '../consent/analytics-consent-controller'
-import { createGatedOptionalAnalyticsTransport } from '../consent/optional-analytics-transport'
+import { createConsentGatedEmitter } from '../consent/optional-analytics-transport'
 
-const rootDir = join(dirname(fileURLToPath(import.meta.url)), '../../..')
-const srcRoot = join(rootDir, 'src')
+const srcRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
+
+/** Opaque test token — not an S5-E event name or payload schema. */
+type TestProbe = { kind: 'probe'; n: number }
 
 describe('S5-D consent vocabulary and persistence freeze', () => {
   it('defaults to unknown and keeps preference persistence blocked', () => {
@@ -56,10 +58,10 @@ describe('S5-D optional analytics gate', () => {
         initialState: initial,
         sinkStatus: 'authorized',
       })
-      const transport = createGatedOptionalAnalyticsTransport(consent)
-      const result = transport.emit({ name: 'curated_promo_filter_click' })
+      const emitter = createConsentGatedEmitter<TestProbe>(consent)
+      const result = emitter.emit({ kind: 'probe', n: 1 })
       assert.equal(result.emitted, false)
-      assert.equal(transport.getEmitted().length, 0)
+      assert.equal(emitter.getEmitted().length, 0)
     }
   })
 
@@ -68,26 +70,19 @@ describe('S5-D optional analytics gate', () => {
       initialState: 'analytics_accepted',
       sinkStatus: 'disabled_by_default',
     })
-    const disabledTransport = createGatedOptionalAnalyticsTransport(disabled)
+    const disabledEmitter = createConsentGatedEmitter<TestProbe>(disabled)
     assert.equal(disabled.isOptionalConsentGranted(), true)
     assert.equal(disabled.canEmitOptionalAnalytics(), false)
-    assert.equal(
-      disabledTransport.emit({ name: 'curated_promo_card_open' }).emitted,
-      false,
-    )
+    assert.equal(disabledEmitter.emit({ kind: 'probe', n: 1 }).emitted, false)
 
     const authorized = createAnalyticsConsentController({
       initialState: 'analytics_accepted',
       sinkStatus: 'authorized',
     })
-    const transport = createGatedOptionalAnalyticsTransport(authorized)
+    const emitter = createConsentGatedEmitter<TestProbe>(authorized)
     assert.equal(authorized.canEmitOptionalAnalytics(), true)
-    assert.equal(
-      transport.emit({ name: 'curated_promo_card_open', payload: { promoId: 'p1' } })
-        .emitted,
-      true,
-    )
-    assert.equal(transport.getEmitted().length, 1)
+    assert.equal(emitter.emit({ kind: 'probe', n: 2 }).emitted, true)
+    assert.deepEqual(emitter.getEmitted(), [{ kind: 'probe', n: 2 }])
   })
 
   it('revoke stops subsequent optional emissions', () => {
@@ -95,41 +90,20 @@ describe('S5-D optional analytics gate', () => {
       initialState: 'analytics_accepted',
       sinkStatus: 'authorized',
     })
-    const transport = createGatedOptionalAnalyticsTransport(consent)
-    assert.equal(transport.emit({ name: 'a' }).emitted, true)
+    const emitter = createConsentGatedEmitter<TestProbe>(consent)
+    assert.equal(emitter.emit({ kind: 'probe', n: 1 }).emitted, true)
     consent.revokeAnalytics()
     assert.equal(consent.getState(), 'essential_only')
-    assert.equal(transport.emit({ name: 'b' }).emitted, false)
-    assert.equal(transport.getEmitted().length, 1)
-  })
-
-  it('rejects prohibited email/token/session payload keys', () => {
-    const consent = createAnalyticsConsentController({
-      initialState: 'analytics_accepted',
-      sinkStatus: 'authorized',
-    })
-    const transport = createGatedOptionalAnalyticsTransport(consent)
-    assert.equal(
-      transport.emit({ name: 'x', payload: { email: 'a@b.c' } }).emitted,
-      false,
-    )
-    assert.equal(
-      transport.emit({ name: 'x', payload: { confirmationToken: 'tok' } }).emitted,
-      false,
-    )
-    assert.equal(
-      transport.emit({ name: 'x', payload: { sessionId: 's' } }).emitted,
-      false,
-    )
-    assert.equal(transport.getEmitted().length, 0)
+    assert.equal(emitter.emit({ kind: 'probe', n: 2 }).emitted, false)
+    assert.equal(emitter.getEmitted().length, 1)
   })
 
   it('does not emit before consent is resolved from the default unknown state', () => {
     const consent = createAnalyticsConsentController()
-    const transport = createGatedOptionalAnalyticsTransport(consent)
+    const emitter = createConsentGatedEmitter<TestProbe>(consent)
     assert.equal(consent.getState(), 'unknown')
     assert.equal(canEmitOptionalAnalytics('unknown', 'authorized'), false)
-    assert.equal(transport.emit({ name: 'early' }).emitted, false)
+    assert.equal(emitter.emit({ kind: 'probe', n: 0 }).emitted, false)
   })
 })
 
@@ -212,7 +186,7 @@ describe('S5-D UI / privacy / boundary', () => {
     assert.match(footer, /href="\/privacy"/)
   })
 
-  it('consent modules do not write cookies or queue token-bearing context', () => {
+  it('consent modules do not write cookies or queue pre-consent replay storage', () => {
     const files = [
       'lib/consent/analytics-consent.ts',
       'lib/consent/analytics-consent-controller.ts',
@@ -230,14 +204,19 @@ describe('S5-D UI / privacy / boundary', () => {
     )
   })
 
-  it('does not create telemetry DB/schema or provider snippets', () => {
-    const consentRoot = join(srcRoot, 'lib/consent')
-    for (const name of [
-      'analytics-consent.ts',
-      'analytics-consent-controller.ts',
-      'optional-analytics-transport.ts',
-    ]) {
-      const source = readFileSync(join(consentRoot, name), 'utf8')
+  it('does not define event taxonomy, payload schemas, or provider/DB objects', () => {
+    const gateSource = readFileSync(
+      join(srcRoot, 'lib/consent/optional-analytics-transport.ts'),
+      'utf8',
+    )
+    assert.match(gateSource, /createConsentGatedEmitter/)
+    assert.doesNotMatch(gateSource, /Record<string,\s*unknown>/)
+    assert.doesNotMatch(gateSource, /\bPROHIBITED_|\bALLOWLIST_/)
+    assert.doesNotMatch(gateSource, /curated_promo_|newsletter_subscribe/)
+    assert.doesNotMatch(gateSource, /CREATE TABLE|supabase\.from\(|googletagmanager|GTM-/i)
+
+    for (const name of ['analytics-consent.ts', 'analytics-consent-controller.ts']) {
+      const source = readFileSync(join(srcRoot, 'lib/consent', name), 'utf8')
       assert.doesNotMatch(source, /CREATE TABLE|supabase\.from\(|googletagmanager|GTM-/i)
     }
   })

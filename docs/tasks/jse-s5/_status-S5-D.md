@@ -4,10 +4,10 @@
 |---|---|
 | Date | 2026-09-11 |
 | Packet | [S5-D-consent-enforcement.md](./S5-D-consent-enforcement.md) |
-| Result | **accepted** (fail-closed in-memory consent; no banner; no cookie write) |
+| Result | **accepted** (fail-closed in-memory consent gate; no banner; no cookie write) |
 | Depends on | S5-A accepted — [_status-S5-A.md](./_status-S5-A.md) D-S5-05 / D-S5-A-06/07 |
 | Base | `main@62e4326` (S5-B merged) |
-| Tested runtime SHA | `879418ac6814ca0a0979e6538b98f351a4508fdd` (`879418a`) |
+| Tested runtime SHA | pending review-correction commit |
 | Branch | `feat/jse-s5-d-consent` |
 | Provenance | [jse-s5-ledger.md](../../provenance/jse-s5-ledger.md) |
 
@@ -30,7 +30,7 @@ analytics_accepted
 
 Revoke maps to `essential_only`. Corrupt/untrusted hydrate values fail to `essential_only`.
 
-## Emission rule
+## Emission rule (consent gate only)
 
 ```text
 canEmitOptionalAnalytics =
@@ -38,7 +38,9 @@ canEmitOptionalAnalytics =
   AND sinkStatus === authorized
 ```
 
-Production/default `sinkStatus` is `disabled_by_default`, so **zero** optional beacons even after accept until a later sink authority decision. Tests inject `authorized` only to prove the consent gate.
+Production/default `sinkStatus` is `disabled_by_default`, so **zero** optional calls even after accept until a later sink authority decision. Tests inject `authorized` only to prove the consent gate.
+
+S5-D does **not** define event names, payload schemas, or field allow/deny lists. Those belong to S5-E/F. The gated seam is a generic `createConsentGatedEmitter<TEvent>()`.
 
 ## Persistence
 
@@ -48,7 +50,7 @@ Production/default `sinkStatus` is `disabled_by_default`, so **zero** optional b
 | Cookie name | `null` (not invented) |
 | Mechanism / lifetime | `null` |
 | Runtime store | in-memory controller only |
-| Excluded legacy keys | `cookie_consent`, `email_signup`, `subscriber_email_hash`, `session_id` |
+| Excluded legacy keys | constructed denylist (no writes) |
 
 `persistPreference()` returns `{ ok: false, reason: 'persistence_blocked' }`.
 
@@ -57,7 +59,7 @@ Production/default `sinkStatus` is `disabled_by_default`, so **zero** optional b
 ```text
 src/lib/consent/analytics-consent.ts
 src/lib/consent/analytics-consent-controller.ts
-src/lib/consent/optional-analytics-transport.ts
+src/lib/consent/optional-analytics-transport.ts   # generic consent-gated emitter
 src/components/shell/ConsentMountSeam.tsx          # still empty; data-consent-ui=none
 src/lib/__tests__/analytics-consent.test.ts
 docs/tasks/jse-s5/_status-S5-D.md
@@ -67,7 +69,7 @@ docs/tasks/jse-s5/_status-S5-D.md
 
 No decorative banner. Shell Privacy links remain `/privacy`. Newsletter DOI consent is unrelated and unchanged.
 
-## No-beacon proof (tests)
+## Gate proof (tests)
 
 | Case | Result |
 |---|---|
@@ -76,9 +78,9 @@ No decorative banner. Shell Privacy links remain `/privacy`. Newsletter DOI cons
 | analytics_accepted + disabled sink → emit | suppressed |
 | analytics_accepted + authorized sink (test inject) → emit | permitted |
 | revoke after accept → emit | suppressed |
-| prohibited email/token/session payload | rejected |
 | default unknown before any choice | no emit |
-| no pre-consent queue API | absent |
+| no pre-consent replay/storage | absent |
+| no event taxonomy / payload schema in S5-D | asserted |
 
 ## Product UX with analytics rejected
 
@@ -92,7 +94,8 @@ No decorative banner. Shell Privacy links remain `/privacy`. Newsletter DOI cons
 
 - Preference cookie name/lifetime (needs sink authority)
 - Consent UI / banner (only when a non-essential sink is authorized)
-- S5-E event contract narrowing; S5-F provider wiring
+- S5-E event contract / payload rules
+- S5-F provider wiring (blocked until S5-E accepted)
 - Hosted provider disable/delete semantics
 - DB-W4 telemetry schema (out of scope)
 
@@ -101,35 +104,36 @@ No decorative banner. Shell Privacy links remain `/privacy`. Newsletter DOI cons
 | Field | Value |
 |---|---|
 | Date | 2026-09-11 |
-| Tested runtime SHA | `879418ac6814ca0a0979e6538b98f351a4508fdd` (`879418a`) |
+| Tested runtime SHA | pending review-correction commit |
 | Branch | `feat/jse-s5-d-consent` |
 
 | Command | Result |
 |---|---|
-| `npm test` | **PASS** - 182 tests, 0 fail |
-| `npm run typecheck` | **PASS** |
-| `npm run build` | **PASS** |
+| `npm test` | pending |
+| `npm run typecheck` | pending |
+| `npm run build` | pending |
 
 ## Checklist
 
 - [x] Consent model matches S5-A
-- [x] Unknown/rejected emits no optional beacons
-- [x] Accepted permits only approved telemetry seam (still sink-gated)
+- [x] Unknown/rejected emits no optional calls
+- [x] Accepted permits only the consent-gated seam (still sink-gated)
 - [x] Revocation stops future optional emissions
 - [x] Preference storage is privacy-minimal (none written)
 - [x] Product UX works with analytics rejected
 - [x] Privacy linked in shell
 - [x] No legacy signup/session cookie repurposed
-- [x] Tests prove behavior, not only banner rendering
+- [x] Tests prove gate behavior, not banner rendering
+- [x] No event taxonomy / payload schema / field filters in S5-D
 - [x] No DB/provider production changes performed
 - [x] No decorative banner controlling nothing
 
 ## Conclusion
 
 ```text
-S5-D: ACCEPTED (fail-closed analytics consent)
+S5-D: ACCEPTED (fail-closed analytics consent gate)
 
-S5-F: unblocked to consume createAnalyticsConsentController + gated transport
-S5-E: still required before real event names/payloads are frozen
-Persistence cookie / banner: remain blocked until sink authority
+S5-D consent controller + createConsentGatedEmitter are ready for S5-F consumption.
+S5-F remains blocked until S5-E is accepted.
+Persistence cookie / banner: remain blocked until sink authority.
 ```
