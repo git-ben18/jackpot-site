@@ -8,6 +8,7 @@
 | Depends on | S5-D accepted — [_status-S5-D.md](./_status-S5-D.md); S5-E accepted — [_status-S5-E.md](./_status-S5-E.md) |
 | Base | `main@2bed903` (S5-E merged) |
 | Branch | `feat/jse-s5-f-initial-implementation` |
+| Tested runtime SHA | `ff96b83cb8b954262054d5969d973a9253a7ec86` (`ff96b83`) |
 | Contract | [s5-telemetry-contract.md](./s5-telemetry-contract.md) |
 | Consent | `src/lib/consent/analytics-consent.ts` + controller |
 | Provenance | [jse-s5-ledger.md](../../provenance/jse-s5-ledger.md) |
@@ -148,7 +149,7 @@ Covers packet items 1–13 plus review corrections: lifecycle once semantics, ty
 | `npm run typecheck` | **PASS** |
 | `npm run build` | **PASS** |
 
-Review-correction working tree on `feat/jse-s5-f-initial-implementation` (base `main@2bed903`). **Tested-runtime SHA:** record the git commit SHA of this working tree when it is committed (`HEAD` at evidence time is still `2bed903` until that commit exists).
+Tested at runtime SHA `ff96b83cb8b954262054d5969d973a9253a7ec86` (`ff96b83`) on `feat/jse-s5-f-initial-implementation` (base `main@2bed903`).
 
 ## Hosted / provider residuals
 
