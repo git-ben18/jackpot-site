@@ -4,13 +4,23 @@
  * emitApprovedEvent → validate S5-E name/payload → S5-D consent/sink gate
  * → configured transport → swallow failures (never change product UX).
  *
+ * Public API is typed to FirstReleaseTelemetryEventName + correlated payload.
+ * Runtime validation remains defense-in-depth for untrusted/cast inputs.
+ *
+ * Once/dedupe is owned by widget/controller lifetimes — not this emitter.
+ *
  * REIMPLEMENT — do not copy source tracker hooks, session-init modules, or
  * log-* routes.
  */
 import { createAnalyticsConsentController } from '../consent/analytics-consent-controller'
 import type { AnalyticsConsentController } from '../consent/analytics-consent-controller'
-import { TELEMETRY_SCHEMA_VERSION } from './first-release-telemetry-contract'
-import type { TelemetryFilterOptionVocabulary } from './first-release-telemetry-contract'
+import {
+  TELEMETRY_SCHEMA_VERSION,
+  type FirstReleaseTelemetryEnvelope,
+  type FirstReleaseTelemetryEventName,
+  type FirstReleaseTelemetryPayloadByEvent,
+  type TelemetryFilterOptionVocabulary,
+} from './first-release-telemetry-contract'
 import {
   createDisabledTelemetryTransport,
   type FirstReleaseTelemetryTransport,
@@ -23,25 +33,31 @@ export type EmitApprovedEventReason =
   | 'invalid_payload'
   | 'consent_not_granted'
   | 'sink_disabled'
-  | 'deduped'
   | 'transport_failed'
 
 export type EmitApprovedEventResult =
   | { ok: true; emitted: true }
-  | { ok: true; emitted: false; reason: 'deduped' }
-  | { ok: false; emitted: false; reason: Exclude<EmitApprovedEventReason, 'deduped'> }
+  | { ok: false; emitted: false; reason: EmitApprovedEventReason }
 
 export type EmitApprovedEventOptions = {
-  onceKey?: string
   filterVocabulary?: TelemetryFilterOptionVocabulary
 }
 
-export type FirstReleaseTelemetryEmitter = {
-  emitApprovedEvent: (
-    eventName: string,
-    payload: unknown,
+export type EmitApprovedEvent = {
+  (
+    eventName: 'curated_promo_filter_click',
+    payload: FirstReleaseTelemetryPayloadByEvent['curated_promo_filter_click'],
+    options: { filterVocabulary: TelemetryFilterOptionVocabulary },
+  ): EmitApprovedEventResult
+  <N extends Exclude<FirstReleaseTelemetryEventName, 'curated_promo_filter_click'>>(
+    eventName: N,
+    payload: FirstReleaseTelemetryPayloadByEvent[N],
     options?: EmitApprovedEventOptions,
-  ) => EmitApprovedEventResult
+  ): EmitApprovedEventResult
+}
+
+export type FirstReleaseTelemetryEmitter = {
+  emitApprovedEvent: EmitApprovedEvent
   getTransportKind: () => FirstReleaseTelemetryTransportKind
 }
 
@@ -58,65 +74,82 @@ function consentDenyReason(
     : 'consent_not_granted'
 }
 
+function toEnvelope(
+  validated: Extract<
+    ReturnType<typeof validateFirstReleaseTelemetryPayload>,
+    { ok: true }
+  >,
+): FirstReleaseTelemetryEnvelope {
+  return {
+    name: validated.name,
+    schemaVersion: TELEMETRY_SCHEMA_VERSION,
+    payload: validated.payload,
+  } as FirstReleaseTelemetryEnvelope
+}
+
+/**
+ * Runtime emit path. Product callers use the typed `emitApprovedEvent`.
+ * Tests may call this to prove defense-in-depth against untrusted names/payloads.
+ */
+export function emitUntrustedFirstReleaseTelemetry(
+  deps: Pick<CreateFirstReleaseTelemetryEmitterDeps, 'consent' | 'transport'>,
+  eventName: string,
+  payload: unknown,
+  options: EmitApprovedEventOptions = {},
+): EmitApprovedEventResult {
+  try {
+    const validated = validateFirstReleaseTelemetryPayload(
+      eventName,
+      payload,
+      options.filterVocabulary,
+    )
+    if (!validated.ok) {
+      return { ok: false, emitted: false, reason: validated.reason }
+    }
+
+    if (!deps.consent.canEmitOptionalAnalytics()) {
+      return {
+        ok: false,
+        emitted: false,
+        reason: consentDenyReason(deps.consent),
+      }
+    }
+
+    try {
+      const maybePromise = deps.transport.send(toEnvelope(validated))
+      if (maybePromise && typeof maybePromise.then === 'function') {
+        void maybePromise.catch(() => {
+          // Swallow async transport failure; do not rethrow into product.
+        })
+      }
+    } catch {
+      return { ok: false, emitted: false, reason: 'transport_failed' }
+    }
+
+    return { ok: true, emitted: true }
+  } catch {
+    return { ok: false, emitted: false, reason: 'transport_failed' }
+  }
+}
+
 export function createFirstReleaseTelemetryEmitter(
   deps: CreateFirstReleaseTelemetryEmitterDeps,
 ): FirstReleaseTelemetryEmitter {
-  const onceKeys = new Set<string>()
+  const emitApprovedEvent = ((
+    eventName: FirstReleaseTelemetryEventName,
+    payload: FirstReleaseTelemetryPayloadByEvent[FirstReleaseTelemetryEventName],
+    options: EmitApprovedEventOptions = {},
+  ) =>
+    emitUntrustedFirstReleaseTelemetry(
+      deps,
+      eventName,
+      payload,
+      options,
+    )) as EmitApprovedEvent
 
   return {
     getTransportKind: () => deps.transport.kind,
-    emitApprovedEvent(eventName, payload, options = {}) {
-      try {
-        const validated = validateFirstReleaseTelemetryPayload(
-          eventName,
-          payload,
-          options.filterVocabulary,
-        )
-        if (!validated.ok) {
-          return { ok: false, emitted: false, reason: validated.reason }
-        }
-
-        if (options.onceKey && onceKeys.has(options.onceKey)) {
-          return { ok: true, emitted: false, reason: 'deduped' }
-        }
-
-        // Consume once-keys for valid events even when gated, so pre-consent
-        // views are never replayed after a later accept (S5-F: no replay cache).
-        if (options.onceKey) {
-          onceKeys.add(options.onceKey)
-        }
-
-        if (!deps.consent.canEmitOptionalAnalytics()) {
-          return {
-            ok: false,
-            emitted: false,
-            reason: consentDenyReason(deps.consent),
-          }
-        }
-
-        try {
-          const maybePromise = deps.transport.send({
-            name: validated.name,
-            schemaVersion: TELEMETRY_SCHEMA_VERSION,
-            payload: validated.payload,
-          })
-          if (maybePromise && typeof maybePromise.then === 'function') {
-            void maybePromise.catch(() => {
-              // Swallow async transport failure; do not rethrow into product.
-            })
-          }
-        } catch {
-          if (options.onceKey) {
-            onceKeys.delete(options.onceKey)
-          }
-          return { ok: false, emitted: false, reason: 'transport_failed' }
-        }
-
-        return { ok: true, emitted: true }
-      } catch {
-        return { ok: false, emitted: false, reason: 'transport_failed' }
-      }
-    },
+    emitApprovedEvent,
   }
 }
 
@@ -144,12 +177,32 @@ export function resetDefaultFirstReleaseTelemetryForTests(): void {
  */
 export function emitApprovedEventFailSoft(
   telemetry: FirstReleaseTelemetryEmitter,
-  eventName: string,
-  payload: unknown,
+  eventName: 'curated_promo_filter_click',
+  payload: FirstReleaseTelemetryPayloadByEvent['curated_promo_filter_click'],
+  options: { filterVocabulary: TelemetryFilterOptionVocabulary },
+): void
+export function emitApprovedEventFailSoft<
+  N extends Exclude<FirstReleaseTelemetryEventName, 'curated_promo_filter_click'>,
+>(
+  telemetry: FirstReleaseTelemetryEmitter,
+  eventName: N,
+  payload: FirstReleaseTelemetryPayloadByEvent[N],
+  options?: EmitApprovedEventOptions,
+): void
+export function emitApprovedEventFailSoft(
+  telemetry: FirstReleaseTelemetryEmitter,
+  eventName: FirstReleaseTelemetryEventName,
+  payload: FirstReleaseTelemetryPayloadByEvent[FirstReleaseTelemetryEventName],
   options?: EmitApprovedEventOptions,
 ): void {
   try {
-    telemetry.emitApprovedEvent(eventName, payload, options)
+    ;(
+      telemetry.emitApprovedEvent as (
+        name: FirstReleaseTelemetryEventName,
+        eventPayload: FirstReleaseTelemetryPayloadByEvent[FirstReleaseTelemetryEventName],
+        eventOptions?: EmitApprovedEventOptions,
+      ) => EmitApprovedEventResult
+    )(eventName, payload, options)
   } catch {
     // Emitter is specified never to throw; this is belt-and-suspenders.
   }

@@ -145,13 +145,22 @@ export type FirstReleaseTelemetryPayloadByEvent = {
   newsletter_subscription_confirmed: NewsletterSubscriptionConfirmedPayload
 }
 
-export type FirstReleaseTelemetryEnvelope<
-  N extends FirstReleaseTelemetryEventName = FirstReleaseTelemetryEventName,
+export type FirstReleaseTelemetryEnvelopeOf<
+  N extends FirstReleaseTelemetryEventName,
 > = {
   name: N
   schemaVersion: typeof TELEMETRY_SCHEMA_VERSION
   payload: FirstReleaseTelemetryPayloadByEvent[N]
 }
+
+/**
+ * Discriminated union: `name` selects the correlated payload shape.
+ * Provider/DB adapters must switch on `envelope.name` rather than treating
+ * payload as a mixed union.
+ */
+export type FirstReleaseTelemetryEnvelope = {
+  [N in FirstReleaseTelemetryEventName]: FirstReleaseTelemetryEnvelopeOf<N>
+}[FirstReleaseTelemetryEventName]
 
 /**
  * Currently rendered / public filter-option vocabulary from

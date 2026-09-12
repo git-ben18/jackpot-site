@@ -23,6 +23,7 @@ import CuratedPromoDiscoveryWidget from '../../components/v2/curated-promos/Cura
 import { CuratedPromoLandingSectionView } from '../../components/v2/curated-promos/CuratedPromoLandingSectionView'
 import {
   createFirstReleaseTelemetryEmitter,
+  emitUntrustedFirstReleaseTelemetry,
   getDefaultFirstReleaseTelemetry,
   type FirstReleaseTelemetryEmitter,
 } from '../telemetry/first-release-telemetry-emitter'
@@ -32,8 +33,14 @@ import {
   createNoopTelemetryTransport,
   type CreateFakeTelemetryTransportOptions,
 } from '../telemetry/first-release-telemetry-transport'
-import { filterClickPayloadFromToggle } from '../telemetry/first-release-telemetry-triggers'
-import type { TelemetryFilterOptionVocabulary } from '../telemetry/first-release-telemetry-contract'
+import {
+  createOnceAttemptTracker,
+  filterClickPayloadFromToggle,
+} from '../telemetry/first-release-telemetry-triggers'
+import type {
+  FirstReleaseTelemetryEnvelope,
+  TelemetryFilterOptionVocabulary,
+} from '../telemetry/first-release-telemetry-contract'
 import { TELEMETRY_SCHEMA_VERSION } from '../telemetry/first-release-telemetry-contract'
 
 const srcRoot = join(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -46,6 +53,53 @@ const SAMPLE_VOCABULARY: TelemetryFilterOptionVocabulary = {
   marketSlugs: ['las-vegas'],
   signalCategories: ['loyalty_rewards', 'dining_food'],
   signalTypesForCategory: ['match_play', 'bonus_spin'],
+}
+
+/**
+ * Compile-only public-API contract. `tsc` fails if emitApprovedEvent widens
+ * back to arbitrary string names or unknown payloads.
+ */
+export function assertFirstReleaseTelemetryEmitApi(
+  emitter: FirstReleaseTelemetryEmitter,
+  vocabulary: TelemetryFilterOptionVocabulary,
+): void {
+  emitter.emitApprovedEvent('curated_promo_discovery_view', {})
+  emitter.emitApprovedEvent('curated_promo_card_open', { promoId: 'mock-promo-1' })
+  emitter.emitApprovedEvent(
+    'curated_promo_filter_click',
+    { filterKey: 'brand', action: 'apply', filterValue: 'Venetian' },
+    { filterVocabulary: vocabulary },
+  )
+  // @ts-expect-error unknown event names are not part of the public API
+  emitter.emitApprovedEvent('session_init', {})
+  emitter.emitApprovedEvent('curated_promo_card_open', {
+    promoId: 'mock-promo-1',
+    // @ts-expect-error extra payload fields are not part of the public API
+    email: 'visitor@example.com',
+  })
+  // @ts-expect-error filter clicks require the rendered vocabulary
+  emitter.emitApprovedEvent('curated_promo_filter_click', {
+    filterKey: 'brand',
+    action: 'apply',
+    filterValue: 'Venetian',
+  })
+}
+
+function correlatedEnvelopePayload(
+  envelope: FirstReleaseTelemetryEnvelope,
+): string {
+  if (envelope.name === 'curated_promo_filter_click') {
+    return envelope.payload.filterValue
+  }
+  if (envelope.name === 'curated_promo_card_open') {
+    return envelope.payload.promoId
+  }
+  if (envelope.name === 'curated_promo_discovery_view') {
+    // @ts-expect-error discovery payload is empty, not a promoId payload
+    const wrong: { promoId: string } = envelope.payload
+    return wrong.promoId
+  }
+  return envelope.name
 }
 
 function jsonResponse(status: number, body: unknown): Response {
@@ -225,13 +279,9 @@ describe('S5-F consent and sink gate', () => {
     assert.equal(transport.sendCount, 0)
   })
 
-  it('revocation suppresses later optional events and does not replay', () => {
+  it('revocation suppresses later optional events', () => {
     const { consent, transport, emitter } = createHarness()
-    emitter.emitApprovedEvent(
-      'curated_promo_discovery_view',
-      {},
-      { onceKey: 'curated_promo_discovery_view' },
-    )
+    emitter.emitApprovedEvent('curated_promo_discovery_view', {})
     assert.equal(transport.sent.length, 1)
     consent.revokeAnalytics()
     emitter.emitApprovedEvent('curated_promo_card_open', {
@@ -239,29 +289,38 @@ describe('S5-F consent and sink gate', () => {
     })
     assert.equal(transport.sent.length, 1)
     consent.acceptAnalytics()
-    emitter.emitApprovedEvent(
-      'curated_promo_discovery_view',
-      {},
-      { onceKey: 'curated_promo_discovery_view' },
-    )
-    assert.equal(transport.sent.length, 1)
+    emitter.emitApprovedEvent('curated_promo_card_open', {
+      promoId: 'mock-promo-venetian-freeplay',
+    })
+    assert.equal(transport.sent.length, 2)
+  })
+
+  it('does not process-dedupe: the same emitter may emit discovery more than once', () => {
+    const { transport, emitter } = createHarness()
+    emitter.emitApprovedEvent('curated_promo_discovery_view', {})
+    emitter.emitApprovedEvent('curated_promo_discovery_view', {})
+    assert.equal(transport.sent.length, 2)
   })
 })
 
 describe('S5-F payload allowlist', () => {
   it('rejects unknown event names without calling transport', () => {
-    const { transport, emitter } = createHarness()
-    const result = emitter.emitApprovedEvent('session_init', {})
+    const harness = createHarness()
+    const result = emitUntrustedFirstReleaseTelemetry(
+      harness,
+      'session_init',
+      {},
+    )
     assert.equal(result.emitted, false)
     if (result.emitted === false && result.ok === false) {
       assert.equal(result.reason, 'unknown_event')
     }
-    assert.equal(transport.sendCount, 0)
+    assert.equal(harness.transport.sendCount, 0)
   })
 
   it('rejects extra payload fields and does not forward them', () => {
-    const { transport, emitter } = createHarness()
-    const result = emitter.emitApprovedEvent('curated_promo_card_open', {
+    const harness = createHarness()
+    const result = emitUntrustedFirstReleaseTelemetry(harness, 'curated_promo_card_open', {
       promoId: 'mock-promo-venetian-freeplay',
       email: 'visitor@example.com',
       metadata: { extra: true },
@@ -270,12 +329,12 @@ describe('S5-F payload allowlist', () => {
     if (result.emitted === false && result.ok === false) {
       assert.equal(result.reason, 'invalid_payload')
     }
-    assert.deepEqual(transport.sent, [])
+    assert.deepEqual(harness.transport.sent, [])
   })
 
   it('rejects filter clicks whose filterValue is not in the rendered vocabulary', () => {
-    const { transport, emitter } = createHarness()
-    emitter.emitApprovedEvent(
+    const harness = createHarness()
+    harness.emitter.emitApprovedEvent(
       'curated_promo_filter_click',
       {
         filterKey: 'brand',
@@ -284,7 +343,8 @@ describe('S5-F payload allowlist', () => {
       },
       { filterVocabulary: SAMPLE_VOCABULARY },
     )
-    emitter.emitApprovedEvent(
+    emitUntrustedFirstReleaseTelemetry(
+      harness,
       'curated_promo_filter_click',
       {
         filterKey: 'brand',
@@ -294,7 +354,7 @@ describe('S5-F payload allowlist', () => {
       },
       { filterVocabulary: SAMPLE_VOCABULARY },
     )
-    assert.deepEqual(transport.sent, [])
+    assert.deepEqual(harness.transport.sent, [])
   })
 
   it('accepts a vocabulary-bound filter click including multi-word brand and clear', () => {
@@ -552,7 +612,9 @@ describe('S5-F curated triggers', () => {
     const discoveryViews = transport.sent.filter(
       (e) => e.name === 'curated_promo_discovery_view',
     )
-    assert.equal(discoveryViews.length, 1)
+    // First widget + later non-empty widget instance (filter_empty) share an
+    // emitter but not a lifetime, so discovery may emit again.
+    assert.equal(discoveryViews.length, 2)
     const dump = envelopeDump(transport)
     assert.equal(dump.includes('https://'), false)
     assert.equal(dump.includes(fixturePromo.sourceUrl ?? 'no-url'), false)
@@ -606,6 +668,152 @@ describe('S5-F curated triggers', () => {
     })
     assert.equal(envelopeDump(transport).includes('https://'), false)
     view.unmount()
+  })
+})
+
+describe('S5-F once/dedupe lifetime owners', () => {
+  it('marks an attempt immediately so later accept cannot replay', () => {
+    const tracker = createOnceAttemptTracker()
+    assert.equal(tracker.attempt('curated_promo_discovery_view'), true)
+    assert.equal(tracker.attempt('curated_promo_discovery_view'), false)
+  })
+
+  it('one widget instance emits discovery at most once', async () => {
+    activeDom = installDom()
+    const { transport, emitter } = createHarness()
+    const view = render(
+      createElement(CuratedPromoDiscoveryWidget, {
+        promos: fixturePromos,
+        telemetry: emitter,
+      }),
+    )
+    await waitFor(() => {
+      assert.equal(
+        transport.sent.filter((e) => e.name === 'curated_promo_discovery_view').length,
+        1,
+      )
+    })
+    fireEvent.click(view.getByRole('button', { name: /^Venetian$/ }))
+    await waitFor(() => {
+      assert.equal(
+        transport.sent.some((e) => e.name === 'curated_promo_filter_click'),
+        true,
+      )
+    })
+    assert.equal(
+      transport.sent.filter((e) => e.name === 'curated_promo_discovery_view').length,
+      1,
+    )
+    view.unmount()
+  })
+
+  it('a new widget instance using the same emitter may emit discovery again', async () => {
+    activeDom = installDom()
+    const { transport, emitter } = createHarness()
+    const first = render(
+      createElement(CuratedPromoDiscoveryWidget, {
+        promos: fixturePromos,
+        telemetry: emitter,
+      }),
+    )
+    await waitFor(() => {
+      assert.equal(
+        transport.sent.filter((e) => e.name === 'curated_promo_discovery_view').length,
+        1,
+      )
+    })
+    first.unmount()
+    const second = render(
+      createElement(CuratedPromoDiscoveryWidget, {
+        promos: fixturePromos,
+        telemetry: emitter,
+      }),
+    )
+    await waitFor(() => {
+      assert.equal(
+        transport.sent.filter((e) => e.name === 'curated_promo_discovery_view').length,
+        2,
+      )
+    })
+    second.unmount()
+  })
+
+  it('pre-consent widget mount does not replay discovery after later acceptance', async () => {
+    activeDom = installDom()
+    const { consent, transport, emitter } = createHarness({
+      consentState: 'unknown',
+      sinkStatus: 'authorized',
+    })
+    const view = render(
+      createElement(CuratedPromoDiscoveryWidget, {
+        promos: fixturePromos,
+        telemetry: emitter,
+      }),
+    )
+    await waitFor(() => {
+      assert.match(view.container.textContent ?? '', /Curated promos/)
+    })
+    assert.equal(transport.sent.length, 0)
+    consent.acceptAnalytics()
+    const replayEmitter = createFirstReleaseTelemetryEmitter({
+      consent,
+      transport,
+    })
+    view.rerender(
+      createElement(CuratedPromoDiscoveryWidget, {
+        promos: fixturePromos,
+        telemetry: replayEmitter,
+      }),
+    )
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    assert.equal(
+      transport.sent.filter((e) => e.name === 'curated_promo_discovery_view').length,
+      0,
+    )
+    view.unmount()
+  })
+
+  it('separate successful confirmation-controller lifetimes are independent', async () => {
+    const { transport, emitter } = createHarness()
+    async function confirmOnce() {
+      const controller = createNewsletterConfirmController({
+        telemetry: emitter,
+        getSearch: () => `?token=${CONFIRM_TOKEN}`,
+        replaceUrl: () => {},
+        fetchImpl: async (url) => {
+          if (String(url).includes('validate')) {
+            return jsonResponse(200, { status: 'ready_to_confirm' })
+          }
+          return jsonResponse(200, { status: 'success' })
+        },
+      })
+      await controller.start()
+      await controller.confirm()
+      assert.equal(controller.getPhase(), 'success')
+      controller.dispose()
+    }
+    await confirmOnce()
+    await confirmOnce()
+    assert.equal(
+      transport.sent.filter((e) => e.name === 'newsletter_subscription_confirmed')
+        .length,
+      2,
+    )
+  })
+
+  it('keeps the public emit API typed to correlated S5-E envelopes', () => {
+    assert.equal(typeof assertFirstReleaseTelemetryEmitApi, 'function')
+    assert.equal(typeof correlatedEnvelopePayload, 'function')
+    const envelope: FirstReleaseTelemetryEnvelope = {
+      name: 'curated_promo_filter_click',
+      schemaVersion: TELEMETRY_SCHEMA_VERSION,
+      payload: {
+        filterKey: 'brand',
+        action: 'apply',
+        filterValue: 'Venetian',
+      },
+    }
+    assert.equal(correlatedEnvelopePayload(envelope), 'Venetian')
   })
 })
 

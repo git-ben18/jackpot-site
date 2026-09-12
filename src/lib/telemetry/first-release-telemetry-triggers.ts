@@ -1,5 +1,6 @@
 /**
  * S5-F trigger helpers — map product state diffs to S5-E payloads.
+ * Once/dedupe trackers are owned by widget/controller lifetimes, not the emitter.
  * No consent, network, or provider logic.
  */
 import type { CuratedPromoFilterOptions } from '../curated-promo-display'
@@ -7,7 +8,6 @@ import type { CuratedPromoFilters } from '../../types/curatedPromos'
 import {
   TELEMETRY_FILTER_KEYS,
   type CuratedPromoFilterClickPayload,
-  type TelemetryEmptyStateReason,
   type TelemetryFilterKey,
   type TelemetryFilterOptionVocabulary,
 } from './first-release-telemetry-contract'
@@ -23,16 +23,25 @@ export function toTelemetryFilterVocabulary(
   }
 }
 
-export function discoveryViewOnceKey(): string {
-  return 'curated_promo_discovery_view'
+/**
+ * Lifecycle-owner attempt tracker. Mark happens immediately so a pre-consent
+ * attempt is never replayed after a later accept on the same owner.
+ */
+export type OnceAttemptTracker<K extends string = string> = {
+  attempt: (key: K) => boolean
 }
 
-export function emptyStateOnceKey(reason: TelemetryEmptyStateReason): string {
-  return `curated_promo_empty_state_view:${reason}`
-}
-
-export function newsletterConfirmedOnceKey(): string {
-  return 'newsletter_subscription_confirmed'
+export function createOnceAttemptTracker<
+  K extends string = string,
+>(): OnceAttemptTracker<K> {
+  const attempted = new Set<K>()
+  return {
+    attempt(key) {
+      if (attempted.has(key)) return false
+      attempted.add(key)
+      return true
+    },
+  }
 }
 
 /**

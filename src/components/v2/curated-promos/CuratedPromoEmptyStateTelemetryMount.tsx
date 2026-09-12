@@ -3,15 +3,17 @@
 /**
  * Client mount seam for S5-E events that fire from server-rendered empty states
  * (fail_soft on CuratedPromoLandingSectionView). Renders nothing.
+ *
+ * Attempt/dedupe is owned by this mount instance (page/widget lifetime).
  */
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import {
   emitApprovedEventFailSoft,
   getDefaultFirstReleaseTelemetry,
   type FirstReleaseTelemetryEmitter,
 } from '../../../lib/telemetry/first-release-telemetry-emitter'
-import { emptyStateOnceKey } from '../../../lib/telemetry/first-release-telemetry-triggers'
+import { createOnceAttemptTracker } from '../../../lib/telemetry/first-release-telemetry-triggers'
 import type { TelemetryEmptyStateReason } from '../../../lib/telemetry/first-release-telemetry-contract'
 
 export type CuratedPromoEmptyStateTelemetryMountProps = {
@@ -24,14 +26,15 @@ export default function CuratedPromoEmptyStateTelemetryMount({
   telemetry,
 }: CuratedPromoEmptyStateTelemetryMountProps) {
   const emitter = telemetry ?? getDefaultFirstReleaseTelemetry()
+  const onceAttemptsRef = useRef(
+    createOnceAttemptTracker<TelemetryEmptyStateReason>(),
+  )
 
   useEffect(() => {
-    emitApprovedEventFailSoft(
-      emitter,
-      'curated_promo_empty_state_view',
-      { reason },
-      { onceKey: emptyStateOnceKey(reason) },
-    )
+    if (!onceAttemptsRef.current.attempt(reason)) return
+    emitApprovedEventFailSoft(emitter, 'curated_promo_empty_state_view', {
+      reason,
+    })
   }, [emitter, reason])
 
   return null

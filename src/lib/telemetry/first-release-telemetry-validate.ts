@@ -17,10 +17,16 @@ import {
   type TelemetryFilterOptionVocabulary,
 } from './first-release-telemetry-contract'
 
-export type ValidateTelemetryPayloadResult<
-  N extends FirstReleaseTelemetryEventName = FirstReleaseTelemetryEventName,
-> =
-  | { ok: true; name: N; payload: FirstReleaseTelemetryPayloadByEvent[N] }
+export type ValidatedTelemetryPayload = {
+  [N in FirstReleaseTelemetryEventName]: {
+    ok: true
+    name: N
+    payload: FirstReleaseTelemetryPayloadByEvent[N]
+  }
+}[FirstReleaseTelemetryEventName]
+
+export type ValidateTelemetryPayloadResult =
+  | ValidatedTelemetryPayload
   | { ok: false; reason: 'unknown_event' | 'invalid_payload' }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

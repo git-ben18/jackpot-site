@@ -12,13 +12,27 @@
 | Consent | `src/lib/consent/analytics-consent.ts` + controller |
 | Provenance | [jse-s5-ledger.md](../../provenance/jse-s5-ledger.md) |
 
+## Review corrections applied
+
+```text
+once/dedupe: moved off the process-wide emitter onto lifecycle owners
+  CuratedPromoDiscoveryWidget
+  CuratedPromoEmptyStateTelemetryMount
+  NewsletterConfirmController
+attempt is marked before telemetry so pre-consent mounts never replay
+public emitApprovedEvent is typed to FirstReleaseTelemetryEventName +
+  FirstReleaseTelemetryPayloadByEvent<N>
+FirstReleaseTelemetryEnvelope is a discriminated union (name ↔ payload)
+runtime validation retained as defense-in-depth (emitUntrustedFirstReleaseTelemetry)
+```
+
 ## Seam
 
 ```text
-emitApprovedEvent(eventName, payload)
+emitApprovedEvent<N>(eventName: N, payload: FirstReleaseTelemetryPayloadByEvent[N])
   → validate S5-E name + closed payload (reject extra/prohibited keys; do not forward)
   → S5-D canEmitOptionalAnalytics (accepted AND authorized sink)
-  → configured transport
+  → configured transport (discriminated FirstReleaseTelemetryEnvelope)
   → swallow throw/reject/timeout; never change DOI / confirm / discovery UX
 ```
 
@@ -26,6 +40,8 @@ Default production emitter: unknown consent + explicit `kind: 'disabled'` transp
 Tests inject `analytics_accepted` + `sinkStatus: 'authorized'` + `kind: 'fake'`.
 
 No GTM. No browser-direct Supabase. No telemetry DB schema / migration.
+No service-role. No persistent identity. No consent banner/cookie.
+Production sink remains `disabled_by_default`.
 
 ## Runtime artifacts
 
@@ -33,7 +49,7 @@ No GTM. No browser-direct Supabase. No telemetry DB schema / migration.
 src/lib/telemetry/first-release-telemetry-emitter.ts
 src/lib/telemetry/first-release-telemetry-transport.ts
 src/lib/telemetry/first-release-telemetry-validate.ts
-src/lib/telemetry/first-release-telemetry-triggers.ts
+src/lib/telemetry/first-release-telemetry-triggers.ts      # createOnceAttemptTracker
 src/components/v2/curated-promos/CuratedPromoEmptyStateTelemetryMount.tsx
 src/lib/newsletter/newsletter-subscribe-controller.ts      # after setPhase(accepted)
 src/lib/newsletter/newsletter-confirm-controller.ts        # after setPhase(success)
@@ -55,23 +71,26 @@ Disposition: **REIMPLEMENT** (do not copy source tracker hooks or session-init m
 
 ```text
 S5-A production sink = disabled-by-default
-authorized production provider = none (deferred)
+authorized production provider = none (intentionally deferred)
 DB-W4 schema / RPC / RLS / retention = BLOCKED-DB-W4 (sink-only; does not block this packet)
 ```
 
 ## Instrumentation (S5-E only)
 
-| Event | Wired trigger |
-|---|---|
-| `curated_promo_discovery_view` | Non-empty widget first mount; once per emitter lifetime |
-| `curated_promo_filter_click` | Chip toggle; clicked key only (category does not emit a second signalType event) |
-| `curated_promo_card_open` | Card open; `promoId` only |
-| `curated_promo_empty_state_view` | `published_empty` / `filter_empty` / `fail_soft`; once per reason |
-| `curated_promo_source_click` | DetailSheet “View source”; `promoId` only; href unchanged |
-| `newsletter_subscribe_requested` | Browser `accepted` + `signupSource: newsletter_landing` after `setPhase` |
-| `newsletter_subscription_confirmed` | Consume terminal `success` only; `already_complete` / ready / invalid / unable are non-emit |
+| Event | Wired trigger | Once owner |
+|---|---|---|
+| `curated_promo_discovery_view` | Non-empty widget first mount | widget instance (`createOnceAttemptTracker`) |
+| `curated_promo_filter_click` | Chip toggle; clicked key only | per interaction (no once) |
+| `curated_promo_card_open` | Card open; `promoId` only | per open (no once) |
+| `curated_promo_empty_state_view` | `published_empty` / `filter_empty` / `fail_soft` | widget or empty-state mount instance, per reason |
+| `curated_promo_source_click` | DetailSheet “View source”; `promoId` only | per click (no once) |
+| `newsletter_subscribe_requested` | Browser `accepted` + `signupSource: newsletter_landing` | per accepted response |
+| `newsletter_subscription_confirmed` | Consume terminal `success` only | confirm-controller instance |
 
-Pre-consent views are not replayed after a later accept (once-keys consumed even when gated).
+A new widget or confirm-controller instance sharing the same emitter may emit again.
+The emitter itself does not process-dedupe.
+
+Pre-consent views are not replayed after a later accept on the same owner (attempt marked before emit).
 
 ## Consent proof
 
@@ -80,7 +99,9 @@ Pre-consent views are not replayed after a later accept (once-keys consumed even
 | unknown / essential_only | zero transport `send` |
 | analytics_accepted + disabled sink | zero transport `send` |
 | analytics_accepted + authorized + fake | S5-E envelopes only |
-| revoke after emit | later events suppressed; discovery_view not replayed |
+| revoke after emit | later events suppressed |
+| pre-consent widget mount then accept | discovery not replayed on that instance |
+| new widget instance, same emitter | discovery may emit again |
 
 ## Prohibited-data audit
 
@@ -117,21 +138,31 @@ Hits: **none**. Historical docs may still mention excluded names. No service-rol
 src/lib/__tests__/first-release-telemetry-implementation.test.ts
 ```
 
-Covers packet items 1–13: consent/revocation, unknown event, extra fields, email/hash/token/URL absence, requested vs confirmed, curated semantics, transport throw/reject/hang, explicit sink kinds, legacy scan.
+Covers packet items 1–13 plus review corrections: lifecycle once semantics, typed public API (`@ts-expect-error` compile contract), runtime untrusted-name/extra-field rejection, requested vs confirmed, curated semantics, transport throw/reject/hang, explicit sink kinds, legacy scan.
 
 ## Verification
 
 | Check | Result |
 |---|---|
-| `npm test` | **PASS** — 210 tests / 55 suites / 0 fail |
+| `npm test` | **PASS** — 217 tests / 56 suites / 0 fail |
 | `npm run typecheck` | **PASS** |
 | `npm run build` | **PASS** |
 
-Tested on working tree of `feat/jse-s5-f-initial-implementation` (base `2bed903`). Commit SHA pending.
+Review-correction working tree on `feat/jse-s5-f-initial-implementation` (base `main@2bed903`). **Tested-runtime SHA:** record the git commit SHA of this working tree when it is committed (`HEAD` at evidence time is still `2bed903` until that commit exists).
 
 ## Hosted / provider residuals
 
-None. No production provider, GTM container, or telemetry table was added.
+Provider activation is **intentionally deferred**, not “no residuals.”
+
+| Residual | Status |
+|---|---|
+| Authorized production analytics provider / SDK | deferred (S5-A sink authority) |
+| GTM / tag manager | not introduced; remains out of scope |
+| Telemetry DB schema / RPC / RLS / retention | BLOCKED-DB-W4 |
+| Consent banner / preference cookie | blocked pending sink authority |
+| Application emit API, S5-D gate, fail-soft, seven-event wiring | complete |
+
+The explicit `disabled` transport is the production sink until a later authority decision. That deferred activation is the accepted residual of this packet.
 
 ## Out of scope (explicit)
 
@@ -150,15 +181,18 @@ New telemetry DB schema, legacy log-table migration, provider billing/admin, BI,
 - [x] No service-role or telemetry DB migration introduced
 - [x] Tests/security searches pass
 - [x] DB-W4-only sink dependencies identified without blocking this packet
+- [x] Once semantics owned by page/widget/controller lifetime
+- [x] Public emitter API typed to correlated S5-E envelopes
 
 ## Conclusion
 
 ```text
 S5-F: ACCEPTED-WITH-PROVIDER-ACTIVATION-DEFERRED
 
-Application wiring, S5-D gate, S5-E allowlist, fail-soft behavior, and
-legacy-exclusion audit are complete. Production sink remains the explicit
-disabled transport until a later sink-authority + DB-W4 decision.
+Application wiring, typed emit API, S5-D gate, S5-E allowlist, lifecycle
+once semantics, fail-soft behavior, and legacy-exclusion audit are complete.
+Production sink remains the explicit disabled transport until a later
+sink-authority + DB-W4 decision (intentionally deferred, not absent-as-done).
 S5-G is unblocked for local/application closeout that does not require a
 live provider.
 ```

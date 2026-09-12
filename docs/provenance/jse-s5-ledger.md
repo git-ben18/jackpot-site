@@ -39,10 +39,10 @@
 
 | Target path | Source path | Source SHA | JSE-003 disposition | Target disposition | Hardening / notes | Tests | Excluded |
 |---|---|---|---|---|---|---|---|
-| `src/lib/telemetry/first-release-telemetry-emitter.ts` | useTracker / SessionInit (not copied) | n/a | EXCLUDE source trackers | REIMPLEMENT | Validate → S5-D gate → transport; swallow failures; no replay queue | `first-release-telemetry-implementation.test.ts` | GTM, log-* routes, pre-consent cache |
+| `src/lib/telemetry/first-release-telemetry-emitter.ts` | useTracker / SessionInit (not copied) | n/a | EXCLUDE source trackers | REIMPLEMENT | Typed emitApprovedEvent; runtime validate; no emitter onceKeys | `first-release-telemetry-implementation.test.ts` | GTM, log-* routes, pre-consent cache |
 | `src/lib/telemetry/first-release-telemetry-transport.ts` | none | n/a | n/a | implemented | Explicit `disabled` / `noop` / `fake` kinds | same | provider SDK, Supabase telemetry schema |
 | `src/lib/telemetry/first-release-telemetry-validate.ts` | none | n/a | n/a | implemented | Closed payload; reject extra/prohibited keys | same | generic metadata bag |
-| `src/lib/telemetry/first-release-telemetry-triggers.ts` | none | n/a | n/a | implemented | Filter-click diff; once-keys; vocab mapping | same | sourceKind as filterKey |
+| `src/lib/telemetry/first-release-telemetry-triggers.ts` | none | n/a | n/a | implemented | Filter-click diff; lifecycle `createOnceAttemptTracker` | same | sourceKind as filterKey; process-wide onceKeys |
 | `src/components/v2/curated-promos/CuratedPromoEmptyStateTelemetryMount.tsx` | none | n/a | n/a | implemented | Client mount for fail_soft from server landing view | same | visitor message string in payload |
 | `src/lib/newsletter/newsletter-subscribe-controller.ts` | adapted | n/a | adapted | requested after `setPhase(accepted)` | v1 `newsletter_landing` only | same | email/hash; click-to-emit |
 | `src/lib/newsletter/newsletter-confirm-controller.ts` | adapted | n/a | adapted | confirmed after consume `success` | `already_complete` non-emit | same | confirmation token |

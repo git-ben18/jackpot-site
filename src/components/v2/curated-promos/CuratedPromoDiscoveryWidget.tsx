@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import type { CuratedPromoDiscoveryDTO } from '../../../types/curatedPromos'
 import {
   EMPTY_CURATED_PROMO_FILTERS,
@@ -16,8 +16,7 @@ import {
   type FirstReleaseTelemetryEmitter,
 } from '../../../lib/telemetry/first-release-telemetry-emitter'
 import {
-  discoveryViewOnceKey,
-  emptyStateOnceKey,
+  createOnceAttemptTracker,
   filterClickPayloadFromToggle,
   toTelemetryFilterVocabulary,
 } from '../../../lib/telemetry/first-release-telemetry-triggers'
@@ -51,6 +50,7 @@ export default function CuratedPromoDiscoveryWidget({
   telemetry,
 }: CuratedPromoDiscoveryWidgetProps) {
   const emitter = telemetry ?? getDefaultFirstReleaseTelemetry()
+  const onceAttemptsRef = useRef(createOnceAttemptTracker())
   const [filters, setFilters] = useState<CuratedPromoFilters>({
     ...EMPTY_CURATED_PROMO_FILTERS,
     brand: defaultBrand,
@@ -70,32 +70,24 @@ export default function CuratedPromoDiscoveryWidget({
 
   useEffect(() => {
     if (!discoveryViewEligible) return
-    emitApprovedEventFailSoft(
-      emitter,
-      'curated_promo_discovery_view',
-      {},
-      { onceKey: discoveryViewOnceKey() },
-    )
+    if (!onceAttemptsRef.current.attempt('curated_promo_discovery_view')) return
+    emitApprovedEventFailSoft(emitter, 'curated_promo_discovery_view', {})
   }, [discoveryViewEligible, emitter])
 
   useEffect(() => {
     if (!publishedEmpty) return
-    emitApprovedEventFailSoft(
-      emitter,
-      'curated_promo_empty_state_view',
-      { reason: 'published_empty' },
-      { onceKey: emptyStateOnceKey('published_empty') },
-    )
+    if (!onceAttemptsRef.current.attempt('published_empty')) return
+    emitApprovedEventFailSoft(emitter, 'curated_promo_empty_state_view', {
+      reason: 'published_empty',
+    })
   }, [publishedEmpty, emitter])
 
   useEffect(() => {
     if (!filterEmpty) return
-    emitApprovedEventFailSoft(
-      emitter,
-      'curated_promo_empty_state_view',
-      { reason: 'filter_empty' },
-      { onceKey: emptyStateOnceKey('filter_empty') },
-    )
+    if (!onceAttemptsRef.current.attempt('filter_empty')) return
+    emitApprovedEventFailSoft(emitter, 'curated_promo_empty_state_view', {
+      reason: 'filter_empty',
+    })
   }, [filterEmpty, emitter])
 
   const handleFilterChange = (next: CuratedPromoFilters) => {

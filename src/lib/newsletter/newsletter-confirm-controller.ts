@@ -18,7 +18,7 @@ import {
   type FirstReleaseTelemetryEmitter,
 } from '../telemetry/first-release-telemetry-emitter'
 import { shouldEmitNewsletterSubscriptionConfirmed } from '../telemetry/first-release-telemetry-contract'
-import { newsletterConfirmedOnceKey } from '../telemetry/first-release-telemetry-triggers'
+import { createOnceAttemptTracker } from '../telemetry/first-release-telemetry-triggers'
 
 export type ConfirmPhase =
   | 'loading'
@@ -71,6 +71,7 @@ export function createNewsletterConfirmController(
 
   const getSearch = deps.getSearch ?? (() => '')
   const telemetry = deps.telemetry ?? getDefaultFirstReleaseTelemetry()
+  const confirmedAttempt = createOnceAttemptTracker()
   const replaceUrl =
     deps.replaceUrl ??
     ((path: string) => {
@@ -142,12 +143,14 @@ export function createNewsletterConfirmController(
       const status = await consumeConfirmToken(heldToken, deps)
       if (disposed || currentGeneration !== generation) return
       setPhase(status)
-      if (shouldEmitNewsletterSubscriptionConfirmed(status)) {
+      if (
+        shouldEmitNewsletterSubscriptionConfirmed(status) &&
+        confirmedAttempt.attempt('newsletter_subscription_confirmed')
+      ) {
         emitApprovedEventFailSoft(
           telemetry,
           'newsletter_subscription_confirmed',
           {},
-          { onceKey: newsletterConfirmedOnceKey() },
         )
       }
     },
