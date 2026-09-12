@@ -12,6 +12,13 @@ import type {
   ConfirmConsumeBrowserStatus,
   ConfirmValidateBrowserStatus,
 } from './newsletter-public-contract'
+import {
+  emitApprovedEventFailSoft,
+  getDefaultFirstReleaseTelemetry,
+  type FirstReleaseTelemetryEmitter,
+} from '../telemetry/first-release-telemetry-emitter'
+import { shouldEmitNewsletterSubscriptionConfirmed } from '../telemetry/first-release-telemetry-contract'
+import { newsletterConfirmedOnceKey } from '../telemetry/first-release-telemetry-triggers'
 
 export type ConfirmPhase =
   | 'loading'
@@ -26,6 +33,8 @@ export type ConfirmPhase =
 export type NewsletterConfirmControllerDeps = ConfirmClientDeps & {
   getSearch?: () => string
   replaceUrl?: (path: string) => void
+  /** Optional S5-F seam; production defaults to the disabled sink. */
+  telemetry?: FirstReleaseTelemetryEmitter
 }
 
 const TERMINAL_CLEAR_TOKEN_PHASES = new Set<ConfirmPhase>([
@@ -61,6 +70,7 @@ export function createNewsletterConfirmController(
   const listeners = new Set<() => void>()
 
   const getSearch = deps.getSearch ?? (() => '')
+  const telemetry = deps.telemetry ?? getDefaultFirstReleaseTelemetry()
   const replaceUrl =
     deps.replaceUrl ??
     ((path: string) => {
@@ -132,6 +142,14 @@ export function createNewsletterConfirmController(
       const status = await consumeConfirmToken(heldToken, deps)
       if (disposed || currentGeneration !== generation) return
       setPhase(status)
+      if (shouldEmitNewsletterSubscriptionConfirmed(status)) {
+        emitApprovedEventFailSoft(
+          telemetry,
+          'newsletter_subscription_confirmed',
+          {},
+          { onceKey: newsletterConfirmedOnceKey() },
+        )
+      }
     },
     async retry() {
       if (phase !== 'unable_to_confirm' || !token) return

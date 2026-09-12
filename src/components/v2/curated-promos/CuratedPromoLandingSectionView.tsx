@@ -1,16 +1,21 @@
 import React from 'react'
 
 import type { GetCuratedPromosResult } from '../../../lib/server/curatedPromoRepository'
+import type { FirstReleaseTelemetryEmitter } from '../../../lib/telemetry/first-release-telemetry-emitter'
 import CuratedPromoDiscoveryWidget from './CuratedPromoDiscoveryWidget'
 import CuratedPromoEmptyState from './CuratedPromoEmptyState'
+import CuratedPromoEmptyStateTelemetryMount from './CuratedPromoEmptyStateTelemetryMount'
 
 export type CuratedPromoLandingSectionViewProps = {
   result: GetCuratedPromosResult
+  /** Optional S5-F seam; production defaults to the disabled sink. */
+  telemetry?: FirstReleaseTelemetryEmitter
 }
 
 /** Presentational shell — shared by the live server section and fixture tests. */
 export function CuratedPromoLandingSectionView({
   result,
+  telemetry,
 }: CuratedPromoLandingSectionViewProps) {
   return (
     <section aria-labelledby="curated-promos-landing-heading">
@@ -34,12 +39,19 @@ export function CuratedPromoLandingSectionView({
 
         <div className="min-h-[80px] bg-white px-3 pb-2 pt-3">
           {!result.ok ? (
-            <CuratedPromoEmptyState message={result.message} />
+            <>
+              <CuratedPromoEmptyState message={result.message} />
+              <CuratedPromoEmptyStateTelemetryMount
+                reason="fail_soft"
+                telemetry={telemetry}
+              />
+            </>
           ) : (
             <CuratedPromoDiscoveryWidget
               promos={result.promos}
               showHeader={false}
               chipStripVariant="landing"
+              telemetry={telemetry}
             />
           )}
         </div>
