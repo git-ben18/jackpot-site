@@ -6,15 +6,26 @@ import {
   formatActiveStatus,
   humanizeSourceKind,
 } from '../../../lib/curated-promo-display'
+import {
+  emitApprovedEventFailSoft,
+  getDefaultFirstReleaseTelemetry,
+  type FirstReleaseTelemetryEmitter,
+} from '../../../lib/telemetry/first-release-telemetry-emitter'
 import CuratedPromoEvidenceBlock from './CuratedPromoEvidenceBlock'
 import CuratedPromoSignalList from './CuratedPromoSignalList'
 
 type CuratedPromoDetailSheetProps = {
   promo: CuratedPromoDiscoveryDTO
   onClose: () => void
+  telemetry?: FirstReleaseTelemetryEmitter
 }
 
-export default function CuratedPromoDetailSheet({ promo, onClose }: CuratedPromoDetailSheetProps) {
+export default function CuratedPromoDetailSheet({
+  promo,
+  onClose,
+  telemetry,
+}: CuratedPromoDetailSheetProps) {
+  const emitter = telemetry ?? getDefaultFirstReleaseTelemetry()
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
@@ -89,6 +100,11 @@ export default function CuratedPromoDetailSheet({ promo, onClose }: CuratedPromo
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full rounded-lg bg-slate-900 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-slate-800"
+              onClick={() => {
+                emitApprovedEventFailSoft(emitter, 'curated_promo_source_click', {
+                  promoId: promo.promoId,
+                })
+              }}
             >
               View source
             </a>
