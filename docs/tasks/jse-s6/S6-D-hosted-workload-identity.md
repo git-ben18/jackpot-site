@@ -1,60 +1,78 @@
-# S6-D — Hosted workload identity (real OIDC caller)
+# S6-D — Hosted workload authentication and authorization
 
 | Field | Value |
 |---|---|
 | Track | S6-D |
-| Type | Hosted proof + cross-repo handoff |
-| Depends on | S6-C accepted; `jackpot-api-newsletter` EB-03 / Epic B freeze for audience/claims |
-| Blocks | S6-E |
-| Estimate | L |
-| Repo | git-ben18/jackpot-site (caller evidence only) |
+| Type | Hosted caller + verifier acceptance evidence |
+| Depends on | S6-C accepted; current EB-03 contract explicitly covers `jackpot-site` |
+| Blocks | S6-E…H |
 | HA | HA-03 |
 
 ## Goal
 
-Prove the **caller** side of ADR-0003 on restricted staging: `jackpot-site` BFF acquires a real Vercel-issued workload identity and attaches it only on the server. Missing/wrong identity fails closed before newsletter side effects.
+Prove the real hosted workload trust boundary end to end.
 
-Verifier acceptance (which project/environment claims are trusted) belongs to `jackpot-api-newsletter`. This packet records a handoff; it does not rewrite backend authorization policy from the frontend repo.
+S6-D is not satisfied by “Vercel issued a token.” It must prove that the newsletter verifier accepts the intended `jackpot-site` workload and rejects materially wrong workloads/claims.
 
-S4-D local/fake proofs are **not** this packet.
+## Required authorization contract
 
-## Requirements
+The accepted EB-03 companion must define, as supported by the deployed implementation:
 
-1. Staging `jackpot-site` uses Vercel OIDC (not fake mode).
-2. Audience/`NEWSLETTER_WORKLOAD_OIDC_AUDIENCE` matches the EB-03 freeze — do not invent an audience.
-3. Protected BFF paths do not call the newsletter service when identity is unavailable.
-4. Browser cannot supply `Authorization` that becomes workload authority (already S4-D; re-prove on staging if a test exists).
-5. Assertion material never appears in browser responses, client bundles, or telemetry.
-6. Record companion verifier evidence **or** mark HA-03 verifier leg `blocked-pending-newsletter-epic-B` rather than claiming full HA-03.
+- issuer;
+- team/account identity;
+- `jackpot-site` project identity;
+- environment;
+- audience/resource binding;
+- token lifetime/clock-skew behavior;
+- JWKS/key validation behavior.
 
-## Evidence
+If EB-03 still names only `rewards-maxxing-frontend`, S6-D is blocked.
 
-`docs/tasks/jse-s6/_status-S6-D.md`:
+## Required proof matrix
 
-- identity mode on staging (names only);
-- SHA;
-- fail-closed proof (unauthorized / missing token);
-- authorized caller proof **only if** the verifier side is actually accepting this project/env;
-- distinction: configured vs provider-accepted vs production-authoritative (the last must remain false).
+At minimum prove:
 
-## Out of scope
+| Case | Expected |
+|---|---|
+| accepted jackpot-site staging workload | allowed |
+| missing identity | denied before mutation |
+| malformed/invalid identity | denied |
+| wrong audience/resource | denied |
+| wrong Vercel project | denied |
+| wrong environment / arbitrary preview | denied |
+| expired/not-yet-valid token where testable | denied |
+| browser-supplied Authorization/header spoof | cannot become workload authority |
 
-SendGrid, DNS, public DOI, production trust-config ACQ-03 cutover, HA-05 DDL, analytics provider.
+Also verify assertion material is absent from:
+
+- browser responses;
+- client bundles;
+- telemetry;
+- logs/evidence.
+
+## Cross-repo acceptance rule
+
+HA-03 is `proven` only when both caller and verifier evidence exist for the same accepted topology. Frontend evidence alone may complete this packet’s caller work but leaves the acceptance contribution `not-satisfied`.
+
+## Evidence output
+
+Create `docs/tasks/jse-s6/_status-S6-D.md` with:
+
+- exact frontend/backend SHAs;
+- accepted claim-policy reference;
+- authorization matrix;
+- redaction/token-hygiene observations;
+- packet execution conclusion;
+- HA-03 acceptance contribution.
 
 ## Acceptance checklist
 
-- [ ] Fake identity not used on staging
-- [ ] Audience taken from EB-03, not invented
-- [ ] Missing identity fails before mutation
+- [ ] EB-03 explicitly covers jackpot-site
+- [ ] Real hosted identity used
+- [ ] Positive accepted-workload path proven
+- [ ] Wrong project rejected
+- [ ] Wrong environment/preview rejected
+- [ ] Wrong audience rejected
+- [ ] Missing/invalid identity rejected before mutation
 - [ ] No assertion leakage
-- [ ] Verifier leg proven **or** honestly blocked
-- [ ] Not production authorization
-
-## Agent prompt
-
-~~~text
-Implement only S6-D from docs/tasks/jse-s6/S6-D-hosted-workload-identity.md.
-Prove real Vercel OIDC on restricted staging for the jackpot-site caller.
-Do not invent EB-03 audience, claim backend verifier acceptance without
-newsletter-repo evidence, enable public DOI, or treat this as production trust.
-~~~
+- [ ] Caller and verifier evidence bound to same topology
