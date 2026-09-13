@@ -597,16 +597,26 @@ Exit: target contains one newsletter acquisition path and one canonical downstre
 
 Exit: shell contains no legacy route or analytics dependencies by accident.
 
-### JSE-S6 — Production-safety audit and hosted acceptance
+### JSE-S6 — Production readiness and security acceptance
 
-- run dependency/route/env inventory against target;
-- verify no service-role secret reaches browser or exists without justified server need;
-- verify direct browser access to newsletter backend is absent;
-- verify Vercel environment/workload separation;
-- perform staging E2E against `jackpot-api-newsletter`;
-- preserve acquisition flag/kill switch until release gates close.
+JSE-S6 is the production-hardening boundary for the extracted site. Earlier slices may have carried bounded MVP deferrals; S6 does not treat deferral as a successful release outcome.
 
-Exit: target is eligible for ACQ-06 controlled DOI E2E and production cutover decision.
+- audit the complete release candidate, including surfaces introduced in prior slices and framework/runtime behavior not explicitly named by the original S6 draft;
+- review anonymous-Internet exposure: routes/methods, malformed/oversized/repeated input, dependency/supply-chain posture, browser bundles, headers/referrer/cache behavior, logging/redaction, preview privilege, provider/data/API failures, abuse/rate-limit posture, and rollback/recovery;
+- verify no inappropriate service-role or secret reaches public/browser surfaces;
+- verify browser-direct newsletter access and workload-identity bypass are absent;
+- prove production-equivalent Vercel environment/workload separation with negative isolation tests;
+- prove real workload authentication **and authorization** for the accepted `jackpot-site` project/environment;
+- perform a controlled hosted newsletter/Supabase/provider preflight distinct from ACQ-06;
+- prove the curated public surface both works live and fails safely;
+- require accepted privacy/consent and production abuse controls;
+- bind final evidence to one exact release-candidate SHA and rerun required build/security checks after runtime-affecting remediation.
+
+Exit: one exact target candidate is either **PRODUCTION-READY RELEASE CANDIDATE** or **BLOCKED**.
+
+S6 does not itself enable public DOI, cut over Cloudflare/DNS, transfer ADR-0004 authority, or complete the ACQ-06 GO/NO-GO. Those remain release controls after technical/operational production readiness is proven.
+
+**Target progress (2026-09-12):** production-readiness packets exist under `docs/tasks/jse-s6/`. S6-A re-freezes cross-repo authorities and required controls; S6-H cannot certify while required privacy, verifier, persistence, provider, abuse, or exact-candidate evidence remains unproven.
 
 ---
 
@@ -663,19 +673,19 @@ Before target cutover, produce an evidence table equivalent to:
 | Area | Acceptance evidence |
 |---|---|
 | Routes | Exact production route list; no legacy `/api/subscribe`. |
-| Dependencies | Package/import audit contains no dashboard/manufacturing modules. |
+| Dependencies | Package/import and production dependency/supply-chain audit contains no unapproved modules or unresolved material production finding. |
 | Newsletter | Canonical BFF contract tests + hosted integration. |
 | Workload identity | Unauthorized direct calls rejected; authorized site BFF succeeds. |
 | Supabase | Public promo reads use approved least-privilege contract. |
 | Secrets | Server/browser env inventory reviewed; no inappropriate public secrets. |
 | Privacy | Production policy link/version and contact/operator values complete. |
 | Cookies/analytics | Consent behavior tested; token/PII hygiene verified. |
-| Abuse controls | Honeypot/Turnstile or approved policy + backend cooldown/circuit breaker proven. |
+| Abuse controls | Approved server-side abuse control plus accepted backend cooldown/rate-limit/circuit-breaker posture proven; bare deferral is not acceptance. |
 | Curated promos | Filters/cards/detail/source links work from published data. |
-| Failure behavior | Analytics/data/API failures do not crash the public site. |
+| Failure behavior | Data/API/identity/provider failures and malformed/adversarial input are bounded, non-leaky, and do not crash the public site. |
 | Vercel | Preview/staging/prod separated; production workload identity bound correctly. |
 | Cloudflare | Production hostname/DNS configured after target acceptance. |
-| Rollback | Prior Vercel deployment/acquisition kill-switch procedure recorded. |
+| Rollback | Acquisition kill switch and deployment rollback/recovery exercised in staging where operationally possible; no legacy writer. |
 
 ---
 
