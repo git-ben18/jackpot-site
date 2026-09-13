@@ -1,34 +1,39 @@
-# S6-B — Production-safety inventory
+# S6-B — Production security and Internet-exposure inventory
 
 | Field | Value |
 |---|---|
 | Track | S6-B |
-| Type | Docs + repository searches / build evidence |
+| Type | Repository audit + build evidence + production attack-surface review |
 | Depends on | S6-A accepted |
-| Blocks | S6-H; informs S6-C+ but does not authorize deploy |
-| Estimate | M |
+| Blocks | S6-C…H |
 | Repo | git-ben18/jackpot-site |
 
 ## Goal
 
-Produce the JSE-001 §18-style **target** inventory for routes, dependencies, env names, and credentials **on the frozen S6 start SHA** (or a later main descendant named by S6-A). Prove the local production-safety properties that hosted packets must not regress.
+Audit the complete release-candidate surface, not only functionality introduced by S6.
 
-S6-B does not deploy. Passing S6-B does not authorize Vercel, OIDC, SendGrid, or public DOI.
+S6-B must identify what an anonymous or malicious Internet client can reach, influence, exhaust, bypass, or cause to disclose. It covers inherited S2–S5 work, framework behavior, transitive dependencies, runtime configuration, and production build output.
+
+Passing S6-B is mandatory before S6-C. There is no waiver.
 
 ## Required inventory
 
-Using [s6-hosted-acceptance-inventory-template.md](./s6-hosted-acceptance-inventory-template.md):
+Using the shared inventory template, record:
 
-1. Exact browser pages and BFF routes from the production build.
-2. Package/import audit: no dashboard, Hottest Offers, `LandingDashboardClient`, manufacturing, or event-discovery UI.
-3. Server vs browser env **names**; no `NEXT_PUBLIC_` secrets; no newsletter hostname in client bundles.
-4. No unjustified `SUPABASE_SERVICE_ROLE_KEY` / admin client.
-5. Active-runtime guardrail searches (template literals) on `src/` excluding tests/fixtures.
-6. Shell nav still inside the S5-A allowlist (`/`, `/privacy`; confirm flow-only).
-7. Kill-switch default fail-closed in code (do not enable it here).
-8. Telemetry production sink still explicit `disabled` unless S6-A recorded a new sink authority.
+1. Exact browser pages, API/BFF routes, methods, framework-generated routes, redirects, error routes, and static assets relevant to public behavior.
+2. Package/import inventory and transitive production dependencies.
+3. Server vs browser env names and secret scope.
+4. Browser bundle inspection for secrets, upstream hostnames, assertions, tokens, debug data, and unintended configuration.
+5. Supabase access path and least-privilege posture.
+6. Newsletter BFF/upstream boundary.
+7. Logging/error behavior.
+8. Security headers, CSP/referrer policy, cache behavior, and other public response controls where applicable.
+9. Input surface: body size, malformed JSON/form data, unexpected methods/content types, repeated requests, and validation limits.
+10. External-call surface: Supabase, newsletter API, telemetry, provider-related routes/config, and other configured services.
+11. Preview/staging/production configuration differences.
+12. Dependency/supply-chain findings relevant to production runtime.
 
-Run, at minimum:
+At minimum run:
 
 ```text
 npm test
@@ -36,43 +41,86 @@ npm run typecheck
 npm run build
 ```
 
-Record Node/package manager versions, test counts, and the exact tested SHA. Distinguish that SHA from later evidence-only commits.
+Record exact SHA, Node/package manager versions, test counts, and build result.
 
-## Newsletter / identity static proofs (not hosted)
+## Required adversarial review
 
-Re-assert from existing S4/S5 tests rather than re-implementing:
+For every public route or mutation-capable path, reason about and where practical locally test:
 
-- browser calls only same-origin BFF;
-- fake identity forbidden in production mode;
-- subscribe non-enumeration;
-- confirmation token stripped from URL and absent from telemetry.
+- route/method probing;
+- malformed and oversized inputs;
+- unexpected content types;
+- repeated/automated calls;
+- browser-supplied auth/header spoofing;
+- upstream URL/header injection;
+- token/email/assertion leakage;
+- stack trace/upstream-body disclosure;
+- cache/referrer leakage;
+- direct newsletter/API bypass attempts;
+- preview-to-production privilege assumptions.
 
-Cite the test files and S4-H / S5-F / S5-G evidence. Do not call these “hosted accepted.”
+Findings are either remediated before S6-C or recorded as blockers. Do not relabel a defect as “hosted-only.”
+
+## Required guardrail searches
+
+Include existing extraction guardrails plus searches for:
+
+```text
+/api/subscribe
+email_signups
+SUPABASE_SERVICE_ROLE_KEY
+getSupabaseAdminClient
+Authorization
+Bearer
+NEWSLETTER_SERVICE_BASE_URL
+NEXT_PUBLIC_
+console.log
+console.error
+token
+email
+VERCEL_ENV
+workload
+oidc
+```
+
+Interpret hits; do not treat all string matches as defects.
+
+## Production dependency review
+
+Record:
+
+- direct runtime dependencies;
+- packages no longer needed after extraction;
+- packages with production security advisories if the package manager audit/tooling reports them;
+- whether any dependency introduces server privileges, browser telemetry, dynamic script injection, or network behavior beyond the accepted architecture.
+
+Do not upgrade dependencies merely to make the checklist green without assessing compatibility. A material unresolved production vulnerability is a blocker.
 
 ## Evidence output
 
-Create `docs/tasks/jse-s6/_status-S6-B.md` with the filled inventory, search results, build/test table, and conclusion `accepted` or `blocked`.
+Create `docs/tasks/jse-s6/_status-S6-B.md` with:
 
-If a production-safety defect exists in `main`, remediate on a focused branch **or** block S6-C. Do not hide defects as “hosted deferrals.”
-
-## Out of scope
-
-Vercel UI, real OIDC, real SendGrid, DNS, Privacy Policy content, GTM, DB-W4 schema, public DOI.
+- route/method inventory;
+- dependency/runtime inventory;
+- env/credential inventory;
+- browser-bundle observations;
+- headers/cache/referrer observations;
+- adversarial-input findings;
+- guardrail-search results;
+- tests/typecheck/build evidence;
+- remediation/blocker list;
+- exact tested SHA.
 
 ## Acceptance checklist
 
-- [ ] Route inventory matches S6-A allowlist
-- [ ] Guardrail searches recorded (no unjustified hits)
-- [ ] Env names inventoried without secret values
-- [ ] No service-role in ordinary public rendering
-- [ ] No browser-direct newsletter backend
-- [ ] Tests/typecheck/build pass at recorded SHA
-- [ ] Evidence says this is not hosted acceptance
-
-## Agent prompt
-
-~~~text
-Implement only S6-B from docs/tasks/jse-s6/S6-B-production-safety-inventory.md.
-Inventory routes, dependencies, env names, and credentials on the S6-A SHA.
-Run tests/typecheck/build and guardrail searches. Do not deploy or enable DOI.
-~~~
+- [ ] Full public/runtime surface inventoried, including prior-slice features
+- [ ] Framework-generated/public error surfaces considered
+- [ ] Dependencies and production advisories reviewed
+- [ ] Browser bundle inspected for sensitive material
+- [ ] Env/secrets and least privilege reviewed
+- [ ] Headers/CSP/referrer/cache posture reviewed where applicable
+- [ ] Malformed/oversized/repeated/adversarial input behavior assessed
+- [ ] Route/method/auth probing assessed
+- [ ] Logs/errors do not expose sensitive upstream material
+- [ ] Tests/typecheck/build pass on exact SHA
+- [ ] No unresolved production defect is waived into S6-C
