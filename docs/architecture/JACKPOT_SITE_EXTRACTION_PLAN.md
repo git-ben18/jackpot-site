@@ -608,6 +608,8 @@ Exit: shell contains no legacy route or analytics dependencies by accident.
 
 Exit: target is eligible for ACQ-06 controlled DOI E2E and production cutover decision.
 
+**Target progress (2026-09-12):** planning packets exist under `docs/tasks/jse-s6/`. They do not deploy, enable public DOI, or transfer ADR-0004 authority. S6-A must re-freeze SHAs and remaining S5-C/ACQ-05 and Epic B/EB-03 blockers before restricted hosting.
+
 ---
 
 ## 16. Source-repository responsibilities during extraction
