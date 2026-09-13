@@ -1,99 +1,146 @@
-# S6-H — Hosted-acceptance closeout (eligibility only)
+# S6-H — Production-readiness certification
 
 | Field | Value |
 |---|---|
 | Track | S6-H |
-| Type | Docs / evidence / handoff |
-| Depends on | S6-B…G executed with recorded conclusions |
-| Blocks | ACQ-06 controlled DOI E2E and ADR-0004 cutover **decision** (those remain `jackpot-news` / release) |
-| Estimate | M |
-| Repo | git-ben18/jackpot-site |
+| Type | Final exact-candidate evidence / release handoff |
+| Depends on | Accepted S5-H and S6-A…G required acceptance contributions |
+| Blocks | ACQ-06 and production cutover decision |
 | HA | HA-08 |
 
 ## Goal
 
-Close JSE-S6 evidence as far as facts allow and state clearly whether `jackpot-site` is **eligible** for ACQ-06 controlled DOI E2E and a production cutover decision.
+Certify one exact `jackpot-site` release candidate as production-ready, or block release.
 
-S6-H must not imply that public-site authority transferred, DNS cut over, or public DOI is on.
+There is no “hosted acceptance complete with required production blockers” outcome.
 
-If ACQ-05, EB-03, SendGrid, or readiness review is still blocked, the required closeout is **blocked** (or a later authority’s explicit “accepted-with-named-blockers”). Do not use deferral wording to hide a required missing proof.
+Allowed final statuses:
+
+```text
+PRODUCTION-READY RELEASE CANDIDATE
+BLOCKED
+```
+
+## Exact-candidate invariant
+
+Record:
+
+- final `jackpot-site` candidate SHA;
+- exact `jackpot-api-newsletter` SHA used by accepted hosted proofs;
+- acceptance environment pair;
+- authority/config references;
+- evidence date.
+
+If runtime/config-affecting remediation occurred after earlier proofs, identify affected evidence and rerun it.
+
+On the final candidate rerun at minimum:
+
+```text
+npm test
+npm run typecheck
+npm run build
+guardrail searches
+browser-bundle / secret scan
+route/method inventory comparison
+hosted smoke checks
+critical negative-path checks
+```
+
+A final SHA that has not undergone these checks cannot be certified.
 
 ## Required closeout statement
 
-Include this distinction prominently in `docs/tasks/jse-s6/_status-S6-H.md`:
+```text
+JSE-S6 — Production Readiness and Security Acceptance
 
-~~~text
-JSE-S6 — Production-Safety Audit and Hosted Acceptance
-STATUS: <HOSTED ACCEPTANCE COMPLETE (eligibility only) | BLOCKED | BLOCKED-PENDING-…>
+STATUS: <PRODUCTION-READY RELEASE CANDIDATE | BLOCKED>
 
-Proven in this slice (check only what evidence supports):
-○ production-safety route/dep/env/credential inventory
-○ restricted Vercel staging + preview isolation
-○ real OIDC caller (verifier companion as recorded)
-○ staging BFF → newsletter E2E
-○ controlled SendGrid DOI (if permitted)
-○ hosted curated fail-soft
-○ privacy URL/version approved (ACQ-05 / S5-C)
-○ kill switch / rollback without legacy writer
-○ tests/typecheck/build on hosted SHA
+jackpot-site candidate SHA:
+newsletter backend SHA:
+acceptance environment:
+acceptance date:
+
+Required controls:
+- production route/dependency/env/credential/attack-surface audit
+- production-equivalent restricted hosting and preview isolation
+- OIDC authentication + authorization matrix
+- hosted BFF contract
+- accepted HA-05 / EB-05 persistence proof
+- controlled provider preflight
+- live curated public path + negative fail-soft path
+- accepted privacy/consent behavior
+- accepted abuse/rate-limit posture
+- failure/redaction/correlation evidence
+- kill-switch proof
+- rollback/recovery drill
+- final candidate regression/build/security checks
 
 Not asserted by S6:
-○ public DOI enablement
-○ Cloudflare/DNS production cutover
-○ ACQ-03 production trust cutover complete
-○ deauthorization of rewards-maxxing-frontend
-○ transfer of public-site authority
-○ production analytics/provider acceptance unless S6-A authorized a sink
-○ DB-W4 telemetry schema
-~~~
+- public DOI enabled
+- production DNS/Cloudflare cut over
+- public-site authority transferred
+- legacy frontend deauthorized
+- ACQ-06 GO decision completed
+```
 
-## Required closeout evidence
+## Required evidence table
 
-1. S6-A…G status links and tested/deployed SHAs.
-2. Filled JSE-001 §18 table (routes, deps, newsletter hosted, identity, Supabase public read, secrets, privacy, cookies/analytics, abuse, curated, failure, Vercel, Cloudflare, rollback) — each cell `proven` / `blocked` / `N/A` with owner.
-3. HA-01…08 final map.
-4. Remaining owners: `jackpot-news`, `jackpot-api-newsletter`, operators.
-5. Explicit: S6 does not perform ACQ-06 E2E if that remains a later release control; it only records eligibility.
+Use `proven | N/A-by-authority | not-satisfied` for acceptance contributions.
 
-## No-authority-transfer statement
+Required areas include:
 
-S6 completion, even if hosted acceptance is complete:
+- routes/methods/framework surfaces;
+- dependencies/supply chain;
+- browser bundles;
+- newsletter contract;
+- workload identity/authorization;
+- Supabase public read;
+- newsletter persistence;
+- secrets/env isolation;
+- privacy;
+- consent/cookies/analytics;
+- abuse/rate limits;
+- curated public path;
+- malformed/adversarial input;
+- failure/error disclosure;
+- logs/redaction/correlation;
+- response headers/referrer/cache;
+- Vercel preview/staging/prod isolation;
+- provider path;
+- kill switch;
+- rollback/recovery.
 
-- does not make preview/staging production-authoritative;
-- does not authorize production newsletter mutations beyond the restricted staging pair already proven;
-- does not enable public acquisition;
-- does not modify production DNS/Cloudflare unless a separate release packet did so (default: did not);
-- does not deauthorize the current production frontend.
+A required `not-satisfied` row forces `BLOCKED`.
 
-## Blocker rule
+## Mandatory blocker rule
 
-S6-H must conclude blocked if:
+S6-H must be `BLOCKED` if any required control is unproven, including:
 
-- required HA proof is missing and not covered by an explicit upstream exception;
-- ACQ-05 is still open **and** the closeout tries to call privacy complete;
-- kill switch was left enabled on a non-restricted environment;
-- secrets appear in git/evidence;
-- a production-safety defect was relabeled as a hosted deferral.
+- S5-H not accepted;
+- ACQ-05/privacy incomplete;
+- stale/unaccepted `jackpot-site` verifier policy;
+- HA-05/EB-05 missing;
+- required provider preflight missing;
+- approved abuse control missing;
+- unresolved material dependency/security finding;
+- rate-limit/failure posture not accepted;
+- secret/token/PII leakage;
+- rollback unproven;
+- final candidate SHA changed without rerunning affected acceptance.
 
-## Out of scope
+## Relationship to ACQ-06
 
-Executing the public cutover, writing Privacy Policy, DB-W4 implementation, production GTM, restoring legacy subscribe.
+Successful S6-H means the candidate is technically and operationally ready to enter final release acceptance.
+
+ACQ-06 still owns the release-grade DOI lifecycle and GO/NO-GO for public enablement. S6-H must not claim that ACQ-06 occurred.
 
 ## Acceptance checklist
 
-- [ ] §18 table filled honestly
-- [ ] HA-01…08 mapped with owners
-- [ ] Eligibility vs authority transfer distinguished
-- [ ] Remaining S5-C/ACQ-05/EB-03/SendGrid items explicit
-- [ ] No production-authority claim
-- [ ] Provenance/status files linked
-
-## Agent prompt
-
-~~~text
-Implement only S6-H from docs/tasks/jse-s6/S6-H-hosted-acceptance-closeout.md.
-Close S6 with a section-18 evidence table and HA-01…08 map. State eligibility
-for ACQ-06 / cutover decision only if proofs exist. Do not cut over DNS, enable
-public DOI, or claim public-site authority. If ACQ-05 or verifier proof is
-missing, conclude blocked rather than inventing completion.
-~~~
+- [ ] Final exact candidate SHA recorded
+- [ ] Accepted S5-H present
+- [ ] All required S6 acceptance contributions proven/N/A-by-authority
+- [ ] Final tests/typecheck/build/guardrails rerun
+- [ ] Critical hosted positive/negative checks bound to final candidate
+- [ ] No required control remains deferred
+- [ ] Final status is exactly production-ready or blocked
+- [ ] No DNS/public DOI/authority-transfer claim
