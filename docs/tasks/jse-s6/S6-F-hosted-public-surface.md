@@ -1,61 +1,82 @@
-# S6-F — Hosted public surface (discovery, privacy, consent)
+# S6-F — Hosted public-surface production acceptance
 
 | Field | Value |
 |---|---|
 | Track | S6-F |
-| Type | Hosted evidence |
-| Depends on | S6-C; **ACQ-05 / S5-C** for privacy-acceptance rows |
-| Blocks | S6-H privacy / consent / curated hosted rows |
-| Estimate | M |
+| Type | Hosted positive + negative acceptance evidence |
+| Depends on | S6-C accepted; accepted S5-H required for final S6-H |
+| Blocks | S6-H |
 | Repo | git-ben18/jackpot-site |
 
 ## Goal
 
-Prove the first-release **public product surface** on restricted staging:
+Prove the actual first-release visitor surface works with real accepted dependencies **and** fails safely when those dependencies are unavailable.
 
-- curated discovery reads `api.v_curated_promo_discovery` with the allowlisted columns and fail-soft empty/error UX (no production mock fallback, no service-role);
-- filters / cards / source links work from published data;
-- shell Privacy link is `/privacy`;
-- consent still defaults unknown; optional telemetry emits zero events unless S6-A recorded a newly authorized sink **and** accepted consent;
-- DOI “Privacy Policy” remains unbound until ACQ-05 exists — do **not** “fix” it by linking `/privacy` as if approved.
+Fail-soft behavior alone cannot pass this packet.
+
+## Required positive proof
+
+On the exact candidate or a traceable ancestor not changed in the relevant runtime path:
+
+- curated discovery successfully reads `api.v_curated_promo_discovery`;
+- rendered cards/filters/source links operate on published data;
+- no production mock fallback is active;
+- ordinary rendering uses accepted least privilege;
+- shell/navigation/confirmation surfaces render correctly;
+- privacy link/content/version are accepted under ACQ-05/S5-C/S5-H;
+- consent/21+ defaults and accepted behavior are correct;
+- optional telemetry behavior matches the authorized sink state.
+
+## Required negative proof
+
+Under controlled conditions prove:
+
+- missing/failed curated reader produces visitor-safe fail-soft UX;
+- malformed/unavailable upstream data does not expose stacks or raw bodies;
+- disabled telemetry emits no optional beacons and does not alter product behavior;
+- rejected/unknown consent does not initialize an unauthorized sink;
+- source-link/referrer behavior does not leak confirmation tokens or other sensitive values;
+- missing optional dependency does not silently substitute mock production data.
 
 ## Privacy rule
 
-If ACQ-05 / S5-C is still blocked:
+For final S6 certification, privacy is not an “accepted-with-blocker” row.
 
-- record `/privacy` as scaffold;
-- do not author legal text;
-- conclude this packet `accepted-with-privacy-blocked` **or** `blocked-pending-policy-authority` for the privacy rows, while curated/consent-zero-beacon rows may still pass.
+If ACQ-05/S5-C/S5-H is unresolved, S6-F may collect other evidence but its overall acceptance contribution remains `not-satisfied` and S6-H is blocked.
 
-S6-H cannot call privacy complete on the back of a placeholder.
+Do not author or infer legal values in S6.
 
-## Analytics rule
+## Response-security review
 
-Default: production sink remains `disabled`. Hosted proof is **zero** optional beacons (S5-G first-visit / rejected). Do not add GTM to satisfy “hosted analytics.”
+Record hosted observations for applicable:
 
-If `jackpot-news` later authorizes a sink, prove S5-D gating on staging without email/token/URL in payloads. That authority must be quoted in S6-A first.
+- CSP/security headers;
+- referrer policy;
+- cache behavior on token-bearing or sensitive pages;
+- error-page disclosure;
+- unexpected route/method response behavior.
 
-## Evidence
+Route broader defects to S6-G/remediation, but do not ignore them because they originated before S6.
 
-`docs/tasks/jse-s6/_status-S6-F.md`: screenshots or equivalent hosted observations, fail-soft when Supabase reader config is missing, consent/telemetry behavior, privacy freeze, SHA.
+## Evidence output
 
-## Out of scope
+Create `docs/tasks/jse-s6/_status-S6-F.md` with:
 
-Authoring Privacy Policy, GTM container, DB-W4, DNS, public DOI, event-overlap UI.
+- live positive-path observations;
+- controlled negative/fail-soft observations;
+- privacy/consent evidence;
+- telemetry state/evidence;
+- hosted response-security observations;
+- exact SHA/environment;
+- packet execution conclusion + acceptance contribution.
 
 ## Acceptance checklist
 
-- [ ] Live curated path or honest fail-soft proven on staging
-- [ ] No service-role / no mock production fallback
-- [ ] Zero optional beacons unless a sink was authorized in S6-A
-- [ ] Privacy rows honest vs ACQ-05
-- [ ] No invented legal values
-- [ ] Not public-site cutover
-
-## Agent prompt
-
-~~~text
-Implement only S6-F from docs/tasks/jse-s6/S6-F-hosted-public-surface.md.
-Prove hosted curated discovery and consent/telemetry freeze on restricted
-staging. Do not invent ACQ-05 privacy URL/version, add GTM, or enable public DOI.
-~~~
+- [ ] Live curated hosted path succeeds
+- [ ] Controlled curated failure fails safely
+- [ ] No service-role or production mock fallback
+- [ ] Privacy integration accepted
+- [ ] Consent/21+ behavior accepted
+- [ ] Telemetry disabled or authorized-and-gated as required
+- [ ] Applicable headers/referrer/cache/error behavior reviewed
+- [ ] Positive and negative proofs both exist
