@@ -1,68 +1,119 @@
-# S6-E — Staging newsletter E2E
+# S6-E — Controlled hosted newsletter and provider preflight
 
 | Field | Value |
 |---|---|
 | Track | S6-E |
-| Type | Restricted staging E2E + evidence |
-| Depends on | S6-D (caller proven or verifier companion accepted for this staging pair) |
-| Blocks | S6-H newsletter rows; informs S6-G |
-| Estimate | L |
-| Repo | git-ben18/jackpot-site (BFF + UX evidence) |
-| HA | HA-04, HA-05 (handoff), HA-06 |
+| Type | Restricted hosted preflight + cross-repo evidence |
+| Depends on | S6-D accepted for the staging pair; EB-05/EB-06 execution permitted |
+| Blocks | S6-G/H |
+| HA | HA-04, HA-05, HA-06 |
 
 ## Goal
 
-Reuse S4-G / S4-E scenarios against **restricted staging** with real workload identity and the accepted staging newsletter service:
+Prove the real hosted acquisition path in a controlled acceptance environment before ACQ-06:
 
-- same-origin BFF → `jackpot-api-newsletter`;
-- subscribe remains non-enumerating;
-- confirmation token hygiene;
-- a real confirmation link can open staging `/newsletter/confirm` and consume once;
-- missing/wrong identity cannot mutate.
+```text
+browser
+→ same-origin jackpot-site BFF
+→ accepted workload identity
+→ jackpot-api-newsletter
+→ accepted Supabase newsletter persistence path
+→ controlled SendGrid/provider delivery
+→ staging confirmation UX
+→ validate / explicit consume
+```
 
-HA-06 controlled SendGrid DOI is included **only** when operators permit real mail to a controlled inbox. If not permitted, record `blocked-pending-sendgrid-authority` and still prove HA-04 against a staging API if that is allowed without public mail.
+This is **not ACQ-06** and must not be described as the final public DOI E2E. It is the production-readiness preflight that ensures ACQ-06 is not discovering basic runtime failures for the first time.
 
-HA-05 hosted Supabase **newsletter** mutation path is a newsletter-service + DB-authority proof. This packet cites it; it does not apply DDL from `jackpot-site`.
+## HA-04 rule
+
+Prove the hosted BFF/newsletter contract with expected success and bounded failure behavior. Browser response remains non-enumerating where required, and upstream bodies/stacks do not leak.
+
+## HA-05 rule
+
+HA-05 cannot be accepted merely because the proof belongs to another repository.
+
+Require an accepted EB-05 or equivalent authoritative record bound to:
+
+- exact newsletter backend SHA;
+- acceptance environment;
+- existing Supabase project/DB authority;
+- bounded begin/validate/consume persistence calls;
+- action-limit path;
+- transactional ledger/provider event path as applicable;
+- failure-path evidence;
+- confirmation that no second migration authority was introduced.
+
+The site packet cites that accepted evidence. If it does not exist, HA-05 is `not-satisfied` and S6-H is blocked.
+
+## HA-06 / provider rule
+
+Use real provider delivery only under an authorized controlled window and controlled mailbox/address set.
+
+Record:
+
+- provider authority/window;
+- exact environment pair;
+- request/correlation identifier where safely available;
+- provider message/event identifiers without exposing tokens/PII;
+- confirmation-page load;
+- validate result;
+- explicit consume result;
+- provider/webhook outcome where EB-06 requires it.
+
+Do not send to real users.
+
+## Acceptance-data handling
+
+Define before execution:
+
+- controlled test mailbox/address ownership;
+- test-record labeling;
+- exclusion from campaign/live-send audiences;
+- retention/cleanup policy;
+- whether test subscriber rows remain for audit evidence;
+- prohibition on copying raw email/token values into docs.
 
 ## Kill-switch rule
 
-Acquisition may be enabled **only** in the restricted staging environment for the test window, using controlled addresses. Restore fail-closed afterwards. Document the window. This is not public DOI enablement.
+Enable acquisition only for the controlled staging window. Restore fail-closed immediately after. Record start/end and restore proof.
 
 ## Required scenarios
 
-Reuse, do not rewrite, the S4-G matrix as hosted:
+At minimum:
 
 - subscribe happy path;
-- non-enumeration (distinct internals → same browser accepted);
-- validate → ready → consume success;
-- already_complete / invalid / unable fail-closed;
-- token stripped from URL; token absent from logs/HTML.
+- non-enumeration;
+- duplicate/resend behavior applicable to current backend contract;
+- validate → ready → consume;
+- already-complete / invalid / replay behavior;
+- missing/wrong identity denied before mutation;
+- backend timeout/unavailable response bounded;
+- token stripped from URL after use and absent from logs/telemetry/evidence.
 
-Do not use production subscriber data. Do not test against the production newsletter workload unless a later `jackpot-news` packet explicitly authorizes that (default: forbidden).
+## Evidence output
 
-## Evidence
+Create `docs/tasks/jse-s6/_status-S6-E.md` with:
 
-`docs/tasks/jse-s6/_status-S6-E.md` with scenario table, SHA, env **names**, kill-switch restore confirmation, HA-05/HA-06 status, and no secret/token/email dumps.
-
-## Out of scope
-
-Public hostname, production SendGrid to real users, restoring `/api/subscribe`, inventing ACQ-05 links, GTM.
+- exact frontend/backend SHAs;
+- controlled environment names;
+- HA-04 result;
+- exact HA-05 authoritative evidence reference;
+- HA-06/provider preflight result;
+- acceptance-data handling record;
+- kill-switch restore proof;
+- safe correlation identifiers where available;
+- packet execution conclusion + acceptance contributions.
 
 ## Acceptance checklist
 
-- [ ] HA-04 hosted BFF contract proven or blocked with owner
-- [ ] Token hygiene holds on staging
-- [ ] Identity failure still blocks mutation
-- [ ] Kill switch restored fail-closed after tests
-- [ ] HA-05 cited as out-of-repo or proven by that authority
-- [ ] HA-06 proven or blocked-pending-sendgrid-authority
-- [ ] Not public DOI / not production authority
-
-## Agent prompt
-
-~~~text
-Implement only S6-E from docs/tasks/jse-s6/S6-E-staging-newsletter-e2e.md.
-Run S4-G/S4-E scenarios on restricted staging with real identity. Restore the
-kill switch afterwards. Do not mail real users, cut over DNS, dump tokens, or
-apply Supabase DDL from this repo.
-~~~
+- [ ] HA-04 positive hosted contract proven
+- [ ] HA-04 bounded failure/non-enumeration proven
+- [ ] HA-05 backed by accepted EB-05/DB evidence, not citation-only
+- [ ] Controlled provider preflight proven
+- [ ] Test-data ownership/retention/exclusion defined
+- [ ] Confirmation lifecycle proven
+- [ ] Identity failure blocks mutation
+- [ ] Token/PII hygiene holds
+- [ ] Kill switch restored
+- [ ] Explicitly distinguished from ACQ-06
