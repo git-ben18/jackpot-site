@@ -1,70 +1,76 @@
-# S6-C — Restricted Vercel topology and isolation
+# S6-C — Production-equivalent restricted Vercel topology
 
 | Field | Value |
 |---|---|
 | Track | S6-C |
-| Type | Restricted hosting configuration + evidence |
-| Depends on | S6-A accepted **and** readiness review `permitted`; S6-B accepted or explicitly waived by S6-A |
-| Blocks | S6-D, S6-E, S6-F, S6-G |
-| Estimate | L |
+| Type | Hosted configuration + positive/negative isolation evidence |
+| Depends on | S6-A accepted; S6-B accepted; readiness review permitted |
+| Blocks | S6-D…H |
 | Repo | git-ben18/jackpot-site |
 | HA | HA-01, HA-02 |
 
 ## Goal
 
-Stand up **restricted** Vercel staging for `jackpot-site` with preview/staging/production identity and secret isolation. Prove preview cannot perform production newsletter mutations.
+Stand up the intentional restricted acceptance environment that mirrors the production trust shape closely enough to certify the release candidate without exposing public production authority.
 
-This is configuration and evidence, not public-site cutover. Do not attach a production Cloudflare hostname in this packet.
-
-If S6-A recorded readiness review as blocked, this packet must conclude blocked and must not deploy.
+An arbitrary preview is not acceptance staging.
 
 ## Requirements
 
-1. Named restricted staging environment (not “whatever preview CI produced”).
-2. Staging env names from S6-A/B only; values stay in the provider vault — never in git.
-3. `NEWSLETTER_ACQUISITION_ENABLED` fail-closed on this environment except for a documented S6-E test window.
-4. Preview deployments must not receive production `NEWSLETTER_SERVICE_BASE_URL` mutation authority or production OIDC trust.
-5. `NEWSLETTER_WORKLOAD_IDENTITY_MODE=fake` must be impossible to leave enabled on `VERCEL_ENV=production` (S4-D invariant; re-verify hosted config).
-6. No `SUPABASE_SERVICE_ROLE_KEY` on the frontend project for ordinary rendering.
-7. Record the staging URL as **restricted** (access control / noindex / non-public hostname as operators require). Do not announce it as the product site.
-8. Curated public reader may use publishable/anon class keys already accepted by S3; missing config must fail-soft, not mock.
+1. Named restricted staging/acceptance environment.
+2. Exact candidate SHA deployed.
+3. Explicit Preview / Staging / Production configuration matrix.
+4. Secret values remain provider-managed and never appear in evidence.
+5. Acquisition fail-closed except controlled S6-E windows.
+6. Preview deployments cannot obtain production newsletter mutation authority.
+7. Preview deployments cannot inherit production-only secrets merely because they are part of the same Vercel project.
+8. Fake workload identity is impossible for hosted acceptance and production-shaped environments.
+9. No service-role credential on the site for ordinary rendering.
+10. Curated public-reader config uses accepted least privilege.
+11. Restricted environment is not treated as the public product hostname.
+12. Any perimeter/access restriction used for acceptance is documented so it cannot be mistaken for an application-layer production control.
 
-## Evidence
+## Required negative proof
+
+Do not accept a declarative “environments are isolated” statement alone.
+
+Provide evidence that, without exposing values:
+
+- a preview does **not** receive/resolve production-only secret names where policy requires absence;
+- preview cannot successfully perform the production/staging newsletter mutation path;
+- fake identity cannot be enabled in a hosted production-shaped environment;
+- the acceptance deployment cannot accidentally use an unapproved production upstream;
+- acquisition remains blocked when the feature flag is unset/false.
+
+## Evidence output
 
 `docs/tasks/jse-s6/_status-S6-C.md` must include:
 
-- project/environment names (not secrets);
-- preview vs staging vs prod isolation statement;
-- kill-switch state;
-- SHA deployed;
-- what was **not** configured (DNS cutover, public DOI, production OIDC authorization).
+- Vercel project/environment names;
+- deployed SHA;
+- configuration-name matrix (no values);
+- positive staging configuration proof;
+- negative preview/isolation proof;
+- kill-switch state before/after;
+- what remains intentionally absent: public DNS, public DOI, authority transfer.
 
 ## Stop conditions
 
-- Using production newsletter credentials on preview “just to test.”
-- Enabling public DOI to make the form work.
-- Pasting `.env` values into evidence.
-- Treating this deploy as ADR-0004 cutover.
+Block if:
 
-## Out of scope
-
-Real OIDC success proof (S6-D), SendGrid E2E (S6-E), Privacy Policy authoring (S5-C), DNS cutover, deauthorizing the current production frontend.
+- S6-B is not accepted;
+- readiness review is not permitted;
+- a preview requires production mutation authority “for testing”;
+- acceptance relies on secret values pasted into docs;
+- the topology cannot distinguish preview from accepted staging.
 
 ## Acceptance checklist
 
-- [ ] Restricted staging environment exists and is named
-- [ ] Preview isolated from production mutation authority
-- [ ] Kill switch fail-closed
-- [ ] No service-role on the frontend project
-- [ ] No secrets in git/evidence
-- [ ] Readiness review still permitted at execution time
-- [ ] Explicitly not public-site authority
-
-## Agent prompt
-
-~~~text
-Implement only S6-C from docs/tasks/jse-s6/S6-C-restricted-vercel-topology.md.
-Configure restricted Vercel staging with preview/prod isolation and a fail-closed
-kill switch. Do not cut over DNS, enable public DOI, prove OIDC, or paste secrets.
-If S6-A readiness review is blocked, conclude blocked without deploying.
-~~~
+- [ ] S6-B accepted; no waiver
+- [ ] Production-equivalent restricted staging exists
+- [ ] Exact candidate SHA deployed
+- [ ] Preview/staging/prod configuration matrix recorded
+- [ ] Negative isolation proof recorded
+- [ ] Kill switch fail-closed outside controlled windows
+- [ ] No service-role ordinary-rendering credential
+- [ ] No DNS/public-authority claim
