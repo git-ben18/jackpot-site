@@ -8,6 +8,12 @@ import { getVercelOidcToken } from '@vercel/oidc'
 
 export const WORKLOAD_IDENTITY_AUTHORIZATION_HEADER = 'Authorization' as const
 export const WORKLOAD_IDENTITY_AUTH_SCHEME = 'Bearer' as const
+/**
+ * Vercel Deployment Protection Trusted Sources header.
+ * Same OIDC JWT as Authorization — edge consumes this; newsletter app verifies Bearer.
+ */
+export const WORKLOAD_IDENTITY_TRUSTED_OIDC_IDP_HEADER =
+  'x-vercel-trusted-oidc-idp-token' as const
 
 export type NewsletterServiceAuthResult =
   | { ok: true; headers: Record<string, string> }
@@ -55,6 +61,8 @@ export function isFakeWorkloadIdentityAllowed(
 function authorizationHeaders(assertion: string): Record<string, string> {
   return {
     [WORKLOAD_IDENTITY_AUTHORIZATION_HEADER]: `${WORKLOAD_IDENTITY_AUTH_SCHEME} ${assertion}`,
+    // Trusted Sources (perimeter) + EB-03 Authorization (application) share one token.
+    [WORKLOAD_IDENTITY_TRUSTED_OIDC_IDP_HEADER]: assertion,
   }
 }
 

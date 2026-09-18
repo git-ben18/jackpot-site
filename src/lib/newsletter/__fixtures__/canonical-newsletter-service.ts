@@ -70,6 +70,7 @@ export type CanonicalNewsletterFixtureState = {
   requests: Array<{
     path: string
     authorization: string | null
+    trustedOidcIdpToken: string | null
     body: unknown
   }>
 }
@@ -110,6 +111,11 @@ function requireAuth(init?: RequestInit): string | null {
   return headers.get('Authorization')
 }
 
+function trustedOidcIdpToken(init?: RequestInit): string | null {
+  const headers = new Headers(init?.headers)
+  return headers.get('x-vercel-trusted-oidc-idp-token')
+}
+
 async function readBody(init?: RequestInit): Promise<unknown> {
   if (!init?.body) return null
   try {
@@ -138,9 +144,15 @@ export function createCanonicalNewsletterFixtureFetch(
     const url = String(input)
     const path = pathFromUrl(url)
     const authorization = requireAuth(init)
+    const trustedToken = trustedOidcIdpToken(init)
     const body = await readBody(init)
 
-    state.requests.push({ path, authorization, body })
+    state.requests.push({
+      path,
+      authorization,
+      trustedOidcIdpToken: trustedToken,
+      body,
+    })
 
     if (!authorization || !authorization.startsWith('Bearer ')) {
       return jsonResponse(401, { ok: false, error: 'invalid_request' })
