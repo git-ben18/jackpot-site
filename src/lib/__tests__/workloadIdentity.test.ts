@@ -12,6 +12,7 @@ import {
   isFakeWorkloadIdentityAllowed,
   resolveWorkloadIdentityAuth,
   WORKLOAD_IDENTITY_AUTHORIZATION_HEADER,
+  WORKLOAD_IDENTITY_TRUSTED_OIDC_IDP_HEADER,
 } from '../newsletter/newsletter-service-auth'
 
 const newsletterRoot = join(dirname(fileURLToPath(import.meta.url)), '../newsletter')
@@ -79,7 +80,7 @@ describe('S4-D workload identity provider', () => {
     }
   })
 
-  it('issues deterministic fake Authorization headers when explicitly enabled', async () => {
+  it('issues deterministic fake Authorization + Trusted Sources headers when explicitly enabled', async () => {
     const auth = createFakeWorkloadIdentityAuth('test-assertion-abc')
     const result = await auth.getHeaders()
     assert.equal(result.ok, true)
@@ -87,6 +88,28 @@ describe('S4-D workload identity provider', () => {
       assert.equal(
         result.headers[WORKLOAD_IDENTITY_AUTHORIZATION_HEADER],
         'Bearer test-assertion-abc',
+      )
+      assert.equal(
+        result.headers[WORKLOAD_IDENTITY_TRUSTED_OIDC_IDP_HEADER],
+        'test-assertion-abc',
+      )
+    }
+  })
+
+  it('attaches the same OIDC token to Authorization and Trusted Sources headers', async () => {
+    const auth = createVercelOidcWorkloadIdentityAuth({
+      getVercelOidcTokenFn: async () => 'oidc-token-dual-header',
+    })
+    const result = await auth.getHeaders()
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(
+        result.headers[WORKLOAD_IDENTITY_AUTHORIZATION_HEADER],
+        'Bearer oidc-token-dual-header',
+      )
+      assert.equal(
+        result.headers[WORKLOAD_IDENTITY_TRUSTED_OIDC_IDP_HEADER],
+        'oidc-token-dual-header',
       )
     }
   })
@@ -105,23 +128,48 @@ describe('S4-D workload identity provider', () => {
     }
   })
 
-  it('passes optional audience through to the OIDC acquisition helper', async () => {
-    let seenAudience: string | undefined
+  it('calls getVercelOidcToken with no audience (default issuer)', async () => {
+    let callCount = 0
+    let receivedArgs: unknown
     const auth = createVercelOidcWorkloadIdentityAuth({
-      audience: 'https://newsletter.example',
-      getVercelOidcTokenFn: async (opts) => {
-        seenAudience = opts?.audience
-        return 'oidc-token'
+      getVercelOidcTokenFn: async (...args: unknown[]) => {
+        callCount += 1
+        receivedArgs = args
+        return 'oidc-token-default-issuer'
       },
     })
     const result = await auth.getHeaders()
-    assert.equal(seenAudience, 'https://newsletter.example')
+    assert.equal(callCount, 1)
+    assert.deepEqual(receivedArgs, [])
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(
+        result.headers[WORKLOAD_IDENTITY_AUTHORIZATION_HEADER],
+        'Bearer oidc-token-default-issuer',
+      )
+    }
+  })
+
+  it('ignores NEWSLETTER_WORKLOAD_OIDC_AUDIENCE if left in env', async () => {
+    let receivedArgs: unknown
+    const auth = resolveWorkloadIdentityAuth({
+      env: {
+        NODE_ENV: 'test',
+        NEWSLETTER_WORKLOAD_OIDC_AUDIENCE: 'https://vercel.com/wavy-hand',
+      },
+      getVercelOidcTokenFn: async (...args: unknown[]) => {
+        receivedArgs = args
+        return 'oidc-token-ignored-audience'
+      },
+    })
+    const result = await auth.getHeaders()
+    assert.deepEqual(receivedArgs, [])
     assert.equal(result.ok, true)
   })
 })
 
 describe('S4-D integration with S4-C HTTP transport', () => {
-  it('attaches server-acquired Authorization before protected newsletter calls', async () => {
+  it('attaches server-acquired Authorization and Trusted Sources headers before protected newsletter calls', async () => {
     const calls: Array<{ url: string; init: RequestInit }> = []
     const transport = createHttpNewsletterServiceTransport({
       env: {
@@ -148,6 +196,7 @@ describe('S4-D integration with S4-C HTTP transport', () => {
     assert.equal(calls.length, 1)
     const headers = calls[0].init.headers as Record<string, string>
     assert.equal(headers[WORKLOAD_IDENTITY_AUTHORIZATION_HEADER], 'Bearer transport-test-token')
+    assert.equal(headers[WORKLOAD_IDENTITY_TRUSTED_OIDC_IDP_HEADER], 'transport-test-token')
   })
 
   it('fails closed before fetch when identity cannot be acquired', async () => {

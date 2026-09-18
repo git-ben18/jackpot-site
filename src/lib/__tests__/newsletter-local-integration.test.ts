@@ -280,6 +280,10 @@ describe('S4-G subscribe happy path (assembled)', () => {
       fixture.requests[0].authorization,
       `Bearer ${FAKE_ASSERTION}`,
     )
+    assert.equal(
+      fixture.requests[0].trustedOidcIdpToken ?? null,
+      FAKE_ASSERTION,
+    )
     assert.deepEqual(fixture.requests[0].body, EXPECTED_CANONICAL_SUBSCRIBE_DTO)
     assert.equal(
       JSON.stringify(fixture.requests[0].body).includes('website'),
