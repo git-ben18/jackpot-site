@@ -30,7 +30,8 @@ export type NewsletterServiceAuth = {
 
 export type ResolveWorkloadIdentityAuthOptions = {
   env?: Record<string, string | undefined>
-  getVercelOidcTokenFn?: (options?: { audience?: string }) => Promise<string>
+  /** Test seam — production always calls `getVercelOidcToken()` with no audience. */
+  getVercelOidcTokenFn?: () => Promise<string>
   logError?: (message: string) => void
 }
 
@@ -102,20 +103,27 @@ function createForbiddenFakeAuth(): NewsletterServiceAuth {
   }
 }
 
+/**
+ * Acquire the default Vercel OIDC JWT (no custom audience).
+ *
+ * A custom audience triggers Vercel's audience exchange; the exchanged token's
+ * issuer becomes the team-scoped issuer (`https://oidc.vercel.com/<team>`),
+ * which will fail verification when jackpot-api-newsletter is configured for
+ * the global issuer (`https://oidc.vercel.com`). Hosted Acceptance therefore
+ * must call `getVercelOidcToken()` with no options.
+ */
 export function createVercelOidcWorkloadIdentityAuth(options: {
-  audience?: string
-  getVercelOidcTokenFn?: (opts?: { audience?: string }) => Promise<string>
+  getVercelOidcTokenFn?: () => Promise<string>
   logError?: (message: string) => void
 } = {}): NewsletterServiceAuth {
   const getToken = options.getVercelOidcTokenFn ?? getVercelOidcToken
-  const audience = options.audience?.trim() || undefined
   const logError = options.logError ?? defaultLogError
 
   return {
     mode: 'vercel_oidc',
     async getHeaders() {
       try {
-        const assertion = audience ? await getToken({ audience }) : await getToken()
+        const assertion = await getToken()
         const trimmed = typeof assertion === 'string' ? assertion.trim() : ''
         if (!trimmed) {
           logError('identity_unavailable')
@@ -161,8 +169,9 @@ export function resolveWorkloadIdentityAuth(
     }
   }
 
+  // Intentionally ignore NEWSLETTER_WORKLOAD_OIDC_AUDIENCE if present in env:
+  // custom audience changes the OIDC issuer and breaks global-issuer verification.
   return createVercelOidcWorkloadIdentityAuth({
-    audience: env.NEWSLETTER_WORKLOAD_OIDC_AUDIENCE,
     getVercelOidcTokenFn: options.getVercelOidcTokenFn,
     logError,
   })

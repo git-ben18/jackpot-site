@@ -128,17 +128,42 @@ describe('S4-D workload identity provider', () => {
     }
   })
 
-  it('passes optional audience through to the OIDC acquisition helper', async () => {
-    let seenAudience: string | undefined
+  it('calls getVercelOidcToken with no audience (default issuer)', async () => {
+    let callCount = 0
+    let receivedArgs: unknown
     const auth = createVercelOidcWorkloadIdentityAuth({
-      audience: 'https://newsletter.example',
-      getVercelOidcTokenFn: async (opts) => {
-        seenAudience = opts?.audience
-        return 'oidc-token'
+      getVercelOidcTokenFn: async (...args: unknown[]) => {
+        callCount += 1
+        receivedArgs = args
+        return 'oidc-token-default-issuer'
       },
     })
     const result = await auth.getHeaders()
-    assert.equal(seenAudience, 'https://newsletter.example')
+    assert.equal(callCount, 1)
+    assert.deepEqual(receivedArgs, [])
+    assert.equal(result.ok, true)
+    if (result.ok) {
+      assert.equal(
+        result.headers[WORKLOAD_IDENTITY_AUTHORIZATION_HEADER],
+        'Bearer oidc-token-default-issuer',
+      )
+    }
+  })
+
+  it('ignores NEWSLETTER_WORKLOAD_OIDC_AUDIENCE if left in env', async () => {
+    let receivedArgs: unknown
+    const auth = resolveWorkloadIdentityAuth({
+      env: {
+        NODE_ENV: 'test',
+        NEWSLETTER_WORKLOAD_OIDC_AUDIENCE: 'https://vercel.com/wavy-hand',
+      },
+      getVercelOidcTokenFn: async (...args: unknown[]) => {
+        receivedArgs = args
+        return 'oidc-token-ignored-audience'
+      },
+    })
+    const result = await auth.getHeaders()
+    assert.deepEqual(receivedArgs, [])
     assert.equal(result.ok, true)
   })
 })
